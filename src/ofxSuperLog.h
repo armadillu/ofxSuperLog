@@ -31,6 +31,33 @@
 #include "ofMain.h"
 #include "ofxSuperLogDisplay.h"
 
+#pragma once
+
+#define LOG_TIMESTAMP				string(ofToString(ofGetHours(), 2, '0')			\
+									+ ":" + ofToString(ofGetMinutes(), 2, '0')		\
+									+ ":" + ofToString(ofGetSeconds(), 2, '0') )
+
+//#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
+#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << typeid(this).name() << " : " << __func__ << "() "
+#define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __func__ << "() "
+
+//normal
+#define LOG_VERBOSE					ofLogVerbose() << LOG_CONTEXTUAL_INFO
+#define LOG_NOTICE					ofLogNotice() << LOG_CONTEXTUAL_INFO
+#define LOG_WARNING					ofLogWarning() << LOG_CONTEXTUAL_INFO
+#define LOG_ERROR					ofLogError() << LOG_CONTEXTUAL_INFO
+#define LOG_FATAL_ERROR				ofLogFatalError() << LOG_CONTEXTUAL_INFO
+#define LOG							ofLog() << LOG_CONTEXTUAL_INFO
+#define LOG_STATIC					ofLog() << LOG_CONTEXTUAL_INFO_STATIC
+
+//short
+#define SLOG_VERBOSE				ofLogVerbose() << LOG_TIMESTAMP << " "
+#define SLOG_NOTICE					ofLogNotice() << LOG_TIMESTAMP << " "
+#define SLOG_WARNING				ofLogWarning() << LOG_TIMESTAMP << " "
+#define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << " "
+#define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << " "
+#define SLOG						ofLog() << LOG_TIMESTAMP << " "
+
 
 class ofxSuperLog: public ofBaseLoggerChannel {
 

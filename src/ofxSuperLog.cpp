@@ -33,7 +33,7 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 			dir.create();
 		}
 
-		fileLogger.setFile(logDirectory + "/" + ofGetTimestampString() + ".log");
+		fileLogger.setFile(logDirectory + "/" + ofGetTimestampString() + ".log", true);
 	}
 	if(drawToScreen) {
 		displayLogger.setEnabled(true);
