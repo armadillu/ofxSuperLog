@@ -5,9 +5,9 @@
  */
 
 #include "ofxSuperLog.h"
+
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
-
 
 ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScreen, string logDirectory) {
 	if(logPtr==NULL) {

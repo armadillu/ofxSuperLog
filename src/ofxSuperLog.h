@@ -38,25 +38,46 @@
 									+ ":" + ofToString(ofGetSeconds(), 2, '0') )
 
 //#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
-#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << typeid(this).name() << " : " << __func__ << "() "
-#define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __func__ << "() "
+#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << demangled_type_info_name(typeid(this)) << " " << __func__
+#define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __func__
+
+#ifdef TARGET_OSX
+	#define WARN_EMOJI		"⚠️"
+	#define ERR_EMOJI		"‼️"
+	#define F_ERR_EMOJI		"💣"
+	#define NOTICE_EMOJI	"💬"
+#else
+	#define WARN_EMOJI		""
+	#define ERR_EMOJI		""
+	#define F_ERR_EMOJI		""
+	#define NOTICE_EMOJI	""
+#endif
 
 //normal
-#define LOG_VERBOSE					ofLogVerbose() << LOG_CONTEXTUAL_INFO
-#define LOG_NOTICE					ofLogNotice() << LOG_CONTEXTUAL_INFO
-#define LOG_WARNING					ofLogWarning() << LOG_CONTEXTUAL_INFO
-#define LOG_ERROR					ofLogError() << LOG_CONTEXTUAL_INFO
-#define LOG_FATAL_ERROR				ofLogFatalError() << LOG_CONTEXTUAL_INFO
-#define LOG							ofLog() << LOG_CONTEXTUAL_INFO
-#define LOG_STATIC					ofLog() << LOG_CONTEXTUAL_INFO_STATIC
+#define LOG							ofLog() << "[" << LOG_CONTEXTUAL_INFO << "] " << NOTICE_EMOJI << " "
+#define LOG_VERBOSE					ofLogVerbose() << "[" << LOG_CONTEXTUAL_INFO << "] "
+#define LOG_NOTICE					ofLogNotice() << "[" << LOG_CONTEXTUAL_INFO << "] " << NOTICE_EMOJI << " "
+#define LOG_WARNING					ofLogWarning() << "[" << LOG_CONTEXTUAL_INFO << "] " << WARN_EMOJI << " "
+#define LOG_ERROR					ofLogError() << "[" << LOG_CONTEXTUAL_INFO << "] " << ERR_EMOJI << " "
+#define LOG_FATAL_ERROR				ofLogFatalError() << "[" << LOG_CONTEXTUAL_INFO << "] " << F_ERR_EMOJI << " "
+#define LOG_STATIC					ofLog() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << NOTICE_EMOJI << " "
 
 //short
+#define SLOG						ofLog() << LOG_TIMESTAMP << NOTICE_EMOJI << " "
 #define SLOG_VERBOSE				ofLogVerbose() << LOG_TIMESTAMP << " "
-#define SLOG_NOTICE					ofLogNotice() << LOG_TIMESTAMP << " "
-#define SLOG_WARNING				ofLogWarning() << LOG_TIMESTAMP << " "
-#define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << " "
-#define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << " "
-#define SLOG						ofLog() << LOG_TIMESTAMP << " "
+#define SLOG_NOTICE					ofLogNotice() << LOG_TIMESTAMP << NOTICE_EMOJI << " "
+#define SLOG_WARNING				ofLogWarning() << LOG_TIMESTAMP << WARN_EMOJI << " "
+#define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << ERR_EMOJI << " "
+#define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << F_ERR_EMOJI << " "
+
+static char demangleSpace[1024];
+
+inline std::string demangled_type_info_name(const std::type_info&ti){
+	int status = 0;
+	size_t len = 1024;
+	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace,&len,&status);
+	return string(demangleSpace);
+}
 
 
 class ofxSuperLog: public ofBaseLoggerChannel {
