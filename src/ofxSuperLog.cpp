@@ -87,11 +87,23 @@ void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* fo
 }
 
 
-void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, va_list args) {
-	if(loggingToFile) fileLogger.log(logLevel, module, format, args);
-	if(loggingToConsole) consoleLogger.log(logLevel, module, format, args);
-	if(loggingToScreen) displayLogger.log(logLevel, module, format, args);
+char aux64_2[6000];//hopefully that's enough!
+char aux64[6000];
 
+void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, va_list args) {
+
+	//we can only use args once! bc we have different outputs,
+	//we pre-process args into a string, then we sedn all string to all channels
+	vsprintf(aux64_2, format, args);
+	if(module != ""){
+		sprintf(aux64, "[%s] %s %s", ofGetLogLevelName(logLevel, true).c_str(), module.c_str(), aux64_2);
+	}else{
+		sprintf(aux64, "[%s] %s", ofGetLogLevelName(logLevel, true).c_str(), aux64_2);
+	}
+
+	if(loggingToFile) fileLogger.log(logLevel, module, aux64);
+	if(loggingToConsole) consoleLogger.log(logLevel, module, aux64);
+	if(loggingToScreen) displayLogger.log(logLevel, module, aux64);
 }
 
 void ofxSuperLog::setMaxNumLogLines(int maxNumLogLines) {
