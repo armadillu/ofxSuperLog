@@ -38,8 +38,16 @@
 									+ ":" + ofToString(ofGetSeconds(), 2, '0') )
 
 //#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
-#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << demangled_type_info_name(typeid(this)) << " " << __func__
+
+
+#ifdef TARGET_WIN32
+#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << string(typeid(this).name()) << " " 
+#define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __FUNCTION__ 
+#else
+#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << demangled_type_info_name(typeid(this)) << " " << 
 #define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __func__
+#endif
+
 
 #ifdef TARGET_OSX
 	#define WARN_EMOJI		"⚠️"
@@ -70,13 +78,20 @@
 #define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << ERR_EMOJI << " "
 #define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << F_ERR_EMOJI << " "
 
-static char demangleSpace[1024];
+
+
+
+static char demangleSpace[1024]; //TODO! thread safety!?
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
+#ifdef TARGET_WIN32
+	return string(ti.raw_name());
+#else
 	int status = 0;
 	size_t len = 1024;
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace,&len,&status);
 	return string(demangleSpace);
+#endif
 }
 
 
