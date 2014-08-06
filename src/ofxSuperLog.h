@@ -40,12 +40,12 @@
 //#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
 
 
-#ifdef TARGET_WIN32
-#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << string(typeid(this).name()) << " " 
-#define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __FUNCTION__ 
+#ifdef TARGET_OSX
+#define LOG_CONTEXTUAL_INFO				LOG_TIMESTAMP << " " << demangled_type_info_name(typeid(this)) << " " << __func__
+#define LOG_CONTEXTUAL_INFO_STATIC		LOG_TIMESTAMP << " " <<  __func__
 #else
-#define LOG_CONTEXTUAL_INFO			LOG_TIMESTAMP << " " << demangled_type_info_name(typeid(this)) << " " << 
-#define LOG_CONTEXTUAL_INFO_STATIC	LOG_TIMESTAMP << " " <<  __func__
+#define LOG_CONTEXTUAL_INFO				LOG_TIMESTAMP << " " << string(typeid(this).name()) << " "
+#define LOG_CONTEXTUAL_INFO_STATIC		LOG_TIMESTAMP << " " <<  __FUNCTION__
 #endif
 
 
