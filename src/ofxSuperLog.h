@@ -81,16 +81,20 @@
 
 
 
-static char demangleSpace[1024]; //TODO! thread safety!?
+static char demangleSpace[2048]; 
+static ofMutex mutex;
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
 #ifdef TARGET_WIN32
 	return string(ti.raw_name());
 #else
 	int status = 0;
-	size_t len = 1024;
-	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace,&len,&status);
-	return string(demangleSpace);
+	size_t len = 2048;
+	mutex.lock();
+	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
+	string finalS = string(demangleSpace);
+	mutex.unlock();
+	return finalS;
 #endif
 }
 
