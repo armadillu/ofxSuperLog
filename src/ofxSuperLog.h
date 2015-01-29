@@ -39,13 +39,12 @@
 
 //#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
 
-
 #ifdef TARGET_OSX
-#define LOG_CONTEXTUAL_INFO				LOG_TIMESTAMP << " " << demangled_type_info_name(typeid(this)) << " " << __func__
-#define LOG_CONTEXTUAL_INFO_STATIC		LOG_TIMESTAMP << " " <<  __func__
+#define LOG_CONTEXTUAL_INFO				__func__ << "() @ " << LOG_TIMESTAMP
+#define LOG_CONTEXTUAL_INFO_STATIC		__func__ << "() @ " << LOG_TIMESTAMP
 #else
-#define LOG_CONTEXTUAL_INFO				LOG_TIMESTAMP << " " << string(typeid(this).name()) << " "
-#define LOG_CONTEXTUAL_INFO_STATIC		LOG_TIMESTAMP << " " <<  __FUNCTION__
+#define LOG_CONTEXTUAL_INFO				string(typeid(this).name()) << " " << LOG_TIMESTAMP
+#define LOG_CONTEXTUAL_INFO_STATIC		__FUNCTION__ << LOG_TIMESTAMP
 #endif
 
 
@@ -62,13 +61,23 @@
 #endif
 
 //normal
-#define LOG							ofLog() << "[" << LOG_CONTEXTUAL_INFO << "] " << NOTICE_EMOJI << " "
-#define LOG_VERBOSE					ofLogVerbose() << "[" << LOG_CONTEXTUAL_INFO << "] "
-#define LOG_NOTICE					ofLogNotice() << "[" << LOG_CONTEXTUAL_INFO << "] " << NOTICE_EMOJI << " "
-#define LOG_WARNING					ofLogWarning() << "[" << LOG_CONTEXTUAL_INFO << "] " << WARN_EMOJI << " "
-#define LOG_ERROR					ofLogError() << "[" << LOG_CONTEXTUAL_INFO << "] " << ERR_EMOJI << " "
-#define LOG_FATAL_ERROR				ofLogFatalError() << "[" << LOG_CONTEXTUAL_INFO << "] " << F_ERR_EMOJI << " "
+#define LOG							ofLogNotice(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
+#define LOG_VERBOSE					ofLogVerbose(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " "
+#define LOG_NOTICE					ofLogNotice(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
+#define LOG_WARNING					ofLogWarning(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << WARN_EMOJI << " "
+#define LOG_ERROR					ofLogError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << ERR_EMOJI << " "
+#define LOG_FATAL_ERROR				ofLogFatalError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
 #define LOG_STATIC					ofLog() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << NOTICE_EMOJI << " "
+
+//same as normal, but specifying a module
+//this way you can shut individual modules with ofSetLogLevel(moduleName, level);
+
+#define MLOG(module)				ofLogNotice(module) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
+#define MLOG_VERBOSE(module)		ofLogVerbose(module) << LOG_CONTEXTUAL_INFO << " "
+#define MLOG_WARNING(module)		ofLogWarning(module) << LOG_CONTEXTUAL_INFO << " " << WARN_EMOJI << " "
+#define MLOG_ERROR(module)			ofLogError(module) << LOG_CONTEXTUAL_INFO << " " << ERR_EMOJI << " "
+#define MLOG_FATAL_ERROR(module)	ofLogFatalError(module) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
+#define MLOG_STATIC(module)			ofLogNotice(module) << LOG_CONTEXTUAL_INFO_STATIC << " " << NOTICE_EMOJI << " "
 
 //short
 #define SLOG						ofLog() << LOG_TIMESTAMP << NOTICE_EMOJI << " "
@@ -79,9 +88,7 @@
 #define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << F_ERR_EMOJI << " "
 
 
-
-
-static char demangleSpace[2048]; 
+static char demangleSpace[4096];
 static ofMutex mutex;
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
@@ -89,10 +96,13 @@ inline std::string demangled_type_info_name(const std::type_info&ti){
 	return string(ti.raw_name());
 #else
 	int status = 0;
-	size_t len = 2048;
+	size_t len = 4096;
 	mutex.lock();
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
 	string finalS = string(demangleSpace);
+	if(finalS.size() > 0){
+		finalS = finalS.substr(0, finalS.size() - 1);
+	}
 	mutex.unlock();
 	return finalS;
 #endif
