@@ -43,8 +43,8 @@
 #define LOG_CONTEXTUAL_INFO				__func__ << "() @ " << LOG_TIMESTAMP
 #define LOG_CONTEXTUAL_INFO_STATIC		__func__ << "() @ " << LOG_TIMESTAMP
 #else
-#define LOG_CONTEXTUAL_INFO				string(typeid(this).name()) << " " << LOG_TIMESTAMP
-#define LOG_CONTEXTUAL_INFO_STATIC		__FUNCTION__ << LOG_TIMESTAMP
+#define LOG_CONTEXTUAL_INFO				string(demangled_type_info_name(typeid(this))) << " " << LOG_TIMESTAMP
+#define LOG_CONTEXTUAL_INFO_STATIC		__FUNCTION__ << "() @ "<< LOG_TIMESTAMP
 #endif
 
 
@@ -54,10 +54,10 @@
 	#define F_ERR_EMOJI		"💣"
 	#define NOTICE_EMOJI	"💬"
 #else
-	#define WARN_EMOJI		""
-	#define ERR_EMOJI		""
-	#define F_ERR_EMOJI		""
-	#define NOTICE_EMOJI	""
+	#define WARN_EMOJI		"#"
+	#define ERR_EMOJI		"#"
+	#define F_ERR_EMOJI		"#"
+	#define NOTICE_EMOJI	"#"
 #endif
 
 //normal
@@ -92,20 +92,40 @@ static char demangleSpace[4096];
 static ofMutex mutex;
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
-#ifdef TARGET_WIN32
-	return string(ti.raw_name());
-#else
+	#ifdef TARGET_WIN32
+	static std::vector<std::string> keywords;
+	if ( 0 == keywords.size() ) {
+		keywords.push_back("class ");
+		keywords.push_back("struct ");
+		keywords.push_back("enum ");
+		keywords.push_back("union ");
+		keywords.push_back("__cdecl");
+	}
+	std::string r = ti.name();
+	for ( size_t i = 0; i < keywords.size(); i ++ ) {
+		while (r.find(keywords[i]) != std::string::npos) 
+			r = r.replace(r.find(keywords[i]), keywords[i].size(), "");
+		while (r.find(" *") != std::string::npos) 
+			r = r.replace(r.find(" *"), 2, "*");
+		while (r.find(" &") != std::string::npos) 
+			r = r.replace(r.find(" &"), 2, "&");
+	}
+	if(r.size() > 0){
+		r = r.substr(0, r.size() - 1);
+	}
+
+	return r;
+	#else
 	int status = 0;
 	size_t len = 4096;
-	mutex.lock();
+	ofMutex::ScopedLock Lock( mutex );
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
 	string finalS = string(demangleSpace);
 	if(finalS.size() > 0){
 		finalS = finalS.substr(0, finalS.size() - 1);
 	}
-	mutex.unlock();
 	return finalS;
-#endif
+	#endif
 }
 
 
