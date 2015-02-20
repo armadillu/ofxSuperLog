@@ -31,6 +31,10 @@
 #include "ofMain.h"
 #include "ofxSuperLogDisplay.h"
 
+#ifdef USE_OFX_FONTSTASH
+#include "ofxFontStash.h"
+#endif
+
 #pragma once
 
 #define LOG_TIMESTAMP				string(ofToString(ofGetHours(), 2, '0')			\
@@ -153,6 +157,10 @@ public:
 	bool isScreenLoggingEnabled();
 
 	void setMaximized(bool maximized);
+
+	#ifdef USE_OFX_FONTSTASH
+	void setFont(ofxFontStash * font, float fontSiz);
+	#endif
 
 
 	void log(ofLogLevel level, const string & module, const string & message);

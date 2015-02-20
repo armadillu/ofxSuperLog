@@ -17,8 +17,11 @@
 
 #pragma once
 #include "ofMain.h"
-
 #define DEFAULT_NUM_LOG_LINES 50
+
+#ifdef USE_OFX_FONTSTASH
+#include "ofxFontStash.h"
+#endif
 
 class ofxSuperLogDisplay: public ofBaseLoggerChannel {
 public:
@@ -34,7 +37,10 @@ public:
 	bool isMinimized();
 	
 	
-	
+	#ifdef USE_OFX_FONTSTASH
+	void setFont(ofxFontStash* f, float fontSize_ = 16.0f){font = f; fontSize = fontSize_;}
+	#endif
+
 	
 	void draw(ofEventArgs &e);
 	
@@ -61,4 +67,9 @@ protected:
 	float width;
 	ofRectangle minimizedRect;
 	bool draggingWidth;
+
+	#ifdef USE_OFX_FONTSTASH
+	ofxFontStash * font;
+	float fontSize;
+	#endif
 };

@@ -86,6 +86,13 @@ void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* fo
 	va_end(args);
 }
 
+#ifdef USE_OFX_FONTSTASH
+void ofxSuperLog::setFont(ofxFontStash * font, float fontSiz){
+	displayLogger.setFont(font, fontSiz);
+}
+#endif
+
+
 
 char aux64_2[6000];//hopefully that's enough!
 char aux64[6000];

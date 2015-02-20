@@ -10,7 +10,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	enabled = false;
 	minimized = true;
 	MAX_NUM_LOG_LINES = DEFAULT_NUM_LOG_LINES;
-	width = ofGetWidth()*2.f/5.f;;
+	width = ofGetWidth() * 0.5f;
 	draggingWidth = false;
 }
 
@@ -94,7 +94,7 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		
 		ofPushStyle();
 		ofEnableAlphaBlending();
-		glColor4f(0, 0, 0, 0.4);
+		glColor4f(0, 0, 0, 0.9);
 		ofRect(minimizedRect);
 		ofSetColor(255);
 		ofDrawBitmapString("+ [ Log ] ", minimizedRect.x + 10, minimizedRect.getBottom() - 4);
@@ -104,19 +104,31 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 
 		ofPushStyle();
 		ofEnableAlphaBlending();
-		glColor4f(0, 0, 0, 0.3);
+		glColor4f(0, 0, 0, 0.9);
 		ofRect(x, 0, width, ofGetHeight());
 
-		ofSetColor(255);
+		ofSetColor(200);
 		int pos = 0;
+		#ifdef USE_OFX_FONTSTASH
+		int lineH = 16;
+		if(font){
+			lineH = font->getBBox("M", fontSize, 0, 0).height;
+		}
+		#endif
 		for(int i = logLines.size() - 1; i >=0; i--) {
-			float yy = ofGetHeight() - pos*20 - 5;
+			#ifdef USE_OFX_FONTSTASH
+			float yy = ofGetHeight() - pos * lineH * 1.33;
+			if(yy<0) break;
+			if(font) font->draw(logLines[i], fontSize, x + 22, yy);
+			#else
+			float yy = ofGetHeight() - pos * 20 - 5;
 			if(yy<0) break;
 			ofDrawBitmapString(logLines[i], x + 20, yy);
+			#endif
 			pos++;
 		}
 		
-		glColor4f(0, 0, 0.5, 0.3);
+		ofSetColor(44, 255);
 		ofRect(ofGetWidth() - width, 0, 20, ofGetHeight());
 		ofSetColor(255);
 		float yy = ofGetHeight()/2;
