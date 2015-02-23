@@ -68,6 +68,7 @@ protected:
 	ofRectangle minimizedRect;
 	bool draggingWidth;
 
+	ofMutex mutex;
 	#ifdef USE_OFX_FONTSTASH
 	ofxFontStash * font;
 	float fontSize;

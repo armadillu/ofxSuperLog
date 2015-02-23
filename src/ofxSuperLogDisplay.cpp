@@ -52,7 +52,8 @@ bool ofxSuperLogDisplay::isEnabled() {
 }
 
 void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const string & message) {
-	
+
+	mutex.lock();
 	if(message.find('\n')==-1) {
 		logLines.push_back(module + ": " + ofGetLogLevelName(level) + ": " + message);
 	} else {
@@ -69,7 +70,7 @@ void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const stri
 	while(logLines.size()>MAX_NUM_LOG_LINES) {
 		logLines.pop_front();
 	}
-
+	mutex.unlock();
 }
 
 
@@ -89,6 +90,7 @@ void ofxSuperLogDisplay::log(ofLogLevel logLevel, const string & module, const c
 
 void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 
+	mutex.lock();
 	if(minimized) {
 		minimizedRect.set(ofGetWidth() -150, ofGetHeight() - 20, 150, 20);
 		
@@ -137,6 +139,7 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		ofDrawBitmapString("x", ofGetWidth() - width + 5, ofGetHeight() - 5);
 		ofPopStyle();
 	}
+	mutex.unlock();
 }
 
 void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
