@@ -116,8 +116,8 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		if(font){
 			lineH = font->getBBox("M", fontSize, 0, 0).height; //find line height with "M" char
 		}
-		#endif
 		font->beginBatch();
+		#endif
 		for(int i = logLines.size() - 1; i >=0; i--) {
 			#ifdef USE_OFX_FONTSTASH
 			float yy = ofGetHeight() - pos * lineH * 1.33;
@@ -130,7 +130,9 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 			#endif
 			pos++;
 		}
+		#ifdef USE_OFX_FONTSTASH
 		font->endBatch();
+		#endif
 		ofSetColor(44, 255);
 		ofRect(ofGetWidth() - width, 0, 20, ofGetHeight());
 		ofSetColor(255);
