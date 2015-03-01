@@ -9,9 +9,21 @@
 ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	enabled = false;
 	minimized = true;
+
 	MAX_NUM_LOG_LINES = DEFAULT_NUM_LOG_LINES;
 	width = ofGetWidth() * 0.5f;
 	draggingWidth = false;
+
+	//init some default colors for the log lines
+	float gain = 0.99;
+	logColors[OF_LOG_VERBOSE] = ofColor(99) * gain;
+	logColors[OF_LOG_NOTICE] = ofColor(60,130,240) * gain;
+	logColors[OF_LOG_WARNING] = ofColor(250,250,6) * gain;
+	logColors[OF_LOG_ERROR] = ofColor(240,0,0) * gain;
+	logColors[OF_LOG_FATAL_ERROR] = ofColor(140,32,170) * gain;
+	logColors[OF_LOG_SILENT] = ofColor(90) * gain;
+
+	useColors = true;
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
@@ -55,17 +67,19 @@ void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const stri
 
 	mutex.lock();
 	if(message.find('\n')==-1) {
-		logLines.push_back(module + ": " + ofGetLogLevelName(level) + ": " + message);
+
+		logLines.push_back(LogLine(string(module + ": " + ofGetLogLevelName(level) + ": " + message),
+								   level)
+						   );
 	} else {
 		vector<string> lines = ofSplitString(message,"\n");
 		for(int i = 0; i < lines.size(); i++) {
 			if(i==0) {
-				logLines.push_back(module + ": " + ofGetLogLevelName(level) + ": " + lines[0]);
+				logLines.push_back(LogLine(module + ": " + ofGetLogLevelName(level) + ": " + lines[0], level));
 			} else {
-				logLines.push_back("\t" + lines[i]);
+				logLines.push_back(LogLine("\t" + lines[i], level));
 			}
 		}
-		
 	}
 	while(logLines.size()>MAX_NUM_LOG_LINES) {
 		logLines.pop_front();
@@ -87,29 +101,23 @@ void ofxSuperLogDisplay::log(ofLogLevel logLevel, const string & module, const c
 
 
 
-
 void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 
-	mutex.lock();
+	ofPushStyle();
+	ofEnableAlphaBlending();
+	ofSetColor(0, 240);
+
 	if(minimized) {
 		minimizedRect.set(ofGetWidth() -150, ofGetHeight() - 20, 150, 20);
-		
-		ofPushStyle();
-		ofEnableAlphaBlending();
-		glColor4f(0, 0, 0, 0.9);
 		ofRect(minimizedRect);
 		ofSetColor(255);
 		ofDrawBitmapString("+ [ Log ] ", minimizedRect.x + 10, minimizedRect.getBottom() - 4);
-		ofPopStyle();
 	} else {
 		float x = ofGetWidth() - width;
 
-		ofPushStyle();
-		ofEnableAlphaBlending();
-		glColor4f(0, 0, 0, 0.9);
 		ofRect(x, 0, width, ofGetHeight());
 
-		ofSetColor(200);
+		if(!useColors)ofSetColor(200);
 		int pos = 0;
 		#ifdef USE_OFX_FONTSTASH
 		int lineH = 16;
@@ -118,18 +126,27 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		}
 		font->beginBatch();
 		#endif
+
+		deque<LogLine> linesCopy;
+		mutex.lock();
+		linesCopy = logLines;
+		mutex.unlock();
+
 		for(int i = logLines.size() - 1; i >=0; i--) {
+			if(useColors) ofSetColor(logColors[linesCopy[i].level]);
 			#ifdef USE_OFX_FONTSTASH
 			float yy = ofGetHeight() - pos * lineH * 1.33;
 			if(yy<0) break;
-			if(font) font->drawBatch(logLines[i], fontSize, x + 22, yy - 5);
+			if(font) font->drawBatch(linesCopy[i].line, fontSize, x + 22, yy - 5);
 			#else
 			float yy = ofGetHeight() - pos * 20 - 5;
 			if(yy<0) break;
-			ofDrawBitmapString(logLines[i], x + 20, yy);
+			ofDrawBitmapString(linesCopy[i].line, x + 20, yy);
 			#endif
 			pos++;
 		}
+		mutex.unlock();
+
 		#ifdef USE_OFX_FONTSTASH
 		font->endBatch();
 		#endif
@@ -140,9 +157,8 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		ofLine(x+8, yy - 10, x+8, yy+10);
 		ofLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", ofGetWidth() - width + 5, ofGetHeight() - 5);
-		ofPopStyle();
 	}
-	mutex.unlock();
+	ofPopStyle();
 }
 
 void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {

@@ -35,13 +35,14 @@ public:
 	
 	void setMinimized(bool minimized);
 	bool isMinimized();
-	
+
+	void setUseColors(bool useC){useColors = useC;};
+	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ logColors[l] = c;}
 	
 	#ifdef USE_OFX_FONTSTASH
 	void setFont(ofxFontStash* f, float fontSize_ = 16.0f){font = f; fontSize = fontSize_;}
 	#endif
 
-	
 	void draw(ofEventArgs &e);
 	
 	void mousePressed(ofMouseEventArgs &e);
@@ -49,18 +50,23 @@ public:
 	void mouseDragged(ofMouseEventArgs &e);
 	void mouseReleased(ofMouseEventArgs &e);
 	
-	
-	
-	
+
 	void log(ofLogLevel level, const string & module, const string & message);
-    
 	void log(ofLogLevel logLevel, const string & module, const char* format, ...);
-    
 	void log(ofLogLevel logLevel, const string & module, const char* format, va_list args);
+
 	
 protected:
+
+	struct LogLine{
+		string line;
+		ofLogLevel level;
+		LogLine(string lin, ofLogLevel lev){ line = lin; level = lev; }
+	};
+
 	bool enabled;
-	deque<string> logLines;
+	deque<LogLine> logLines;
+
 	int MAX_NUM_LOG_LINES;
 	bool minimized;
 	
@@ -69,6 +75,10 @@ protected:
 	bool draggingWidth;
 
 	ofMutex mutex;
+
+	bool useColors;
+	ofColor logColors[6]; //6 being the # of ofLogLevels. This is not very future proof - TODO!
+
 	#ifdef USE_OFX_FONTSTASH
 	ofxFontStash * font;
 	float fontSize;

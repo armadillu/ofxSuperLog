@@ -163,6 +163,9 @@ public:
 	void setFont(ofxFontStash * font, float fontSiz);
 	#endif
 
+	void setUseScreenColors(bool u){ displayLogger.setUseColors(u); }
+	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ displayLogger.setColorForLogLevel(l, c); }
+
 
 	void log(ofLogLevel level, const string & module, const string & message);
 
