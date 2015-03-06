@@ -27,6 +27,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	scrollV = 0;
 	lineH = 20;
 	inertia = 0;
+	font = NULL;
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
@@ -153,7 +154,7 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		int pos = 0;
 
 		#ifdef USE_OFX_FONTSTASH
-		font->beginBatch();
+		if(font) font->beginBatch();
 		#endif
 
 		deque<LogLine> linesCopy;
@@ -167,39 +168,42 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 			if(useColors) ofSetColor(logColors[linesCopy[i].level]);
 			bool drawLine = true;
 			#ifdef USE_OFX_FONTSTASH
-			float yy = ofGetHeight() - pos * lineH - scrollV;
-			if(yy < 0){
-				newestLineOnScreen = i;
-				break;
-			}
-			if(yy > ofGetHeight()) drawLine = false;
-			if(font && drawLine){
-				if(!drawn){
-					oldestLineOnScreen = i;
-					drawn = true;
+			if(font){
+				float yy = ofGetHeight() - pos * lineH - scrollV;
+				if(yy < 0){
+					newestLineOnScreen = i;
+					break;
 				}
-				font->drawBatch(linesCopy[i].line, fontSize, x + 22, yy - 5);
-			}
-			#else
-			float yy = ofGetHeight() - pos * lineH - 5 - scrollV;
-			if(yy < 0){
-				newestLineOnScreen = i;
-				break;
-			}
-			if(yy > ofGetHeight()) drawLine = false;
-			if(drawLine){
-				if(!drawn){
-					oldestLineOnScreen = i;
-					drawn = true;
+				if(yy > ofGetHeight()) drawLine = false;
+				if(font && drawLine){
+					if(!drawn){
+						oldestLineOnScreen = i;
+						drawn = true;
+					}
+					font->drawBatch(linesCopy[i].line, fontSize, x + 22, yy - 5);
 				}
-				ofDrawBitmapString(linesCopy[i].line, x + 20, yy);
-			}
+			}else
 			#endif
+			{
+				float yy = ofGetHeight() - pos * lineH - 5 - scrollV;
+				if(yy < 0){
+					newestLineOnScreen = i;
+					break;
+				}
+				if(yy > ofGetHeight()) drawLine = false;
+				if(drawLine){
+					if(!drawn){
+						oldestLineOnScreen = i;
+						drawn = true;
+					}
+					ofDrawBitmapString(linesCopy[i].line, x + 20, yy);
+				}
+			}
 			pos++;
 		}
 
 		#ifdef USE_OFX_FONTSTASH
-		font->endBatch();
+		if(font)font->endBatch();
 		#endif
 
 		ofSetColor(44, 255);
@@ -224,7 +228,7 @@ void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
 		draggingWidth = true;
 		mouseDragged(e);
 	}
-	if(!minimized && (e.x > width && e.x < ofGetWidth())) {
+	if(!minimized && (e.x > (ofGetWidth() - width))) {
 		scrolling = true;
 		prevY = e.y;
 		inertia = 0;
