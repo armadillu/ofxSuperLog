@@ -12,7 +12,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 
 	MAX_NUM_LOG_LINES = DEFAULT_NUM_LOG_LINES;
 	width = ofGetWidth() * 0.5f;
-	draggingWidth = false;
+	draggingWidth = scrolling = false;
 
 	//init some default colors for the log lines
 	float gain = 0.99;
@@ -24,10 +24,21 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	logColors[OF_LOG_SILENT] = ofColor(90) * gain;
 
 	useColors = true;
+	scrollV = 0;
+	lineH = 20;
+	inertia = 0;
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
 }
+
+#ifdef USE_OFX_FONTSTASH
+void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
+	font = f;
+	fontSize = fontSize_;
+	lineH = font->getBBox("M", fontSize, 0, 0).height * 1.4; //find line height with "M" char
+}
+#endif
 
 void ofxSuperLogDisplay::setMaxNumLogLines(int maxNumLogLines) {
 	MAX_NUM_LOG_LINES = maxNumLogLines;
@@ -100,7 +111,6 @@ void ofxSuperLogDisplay::log(ofLogLevel logLevel, const string & module, const c
 }
 
 
-
 void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 
 	ofPushStyle();
@@ -113,50 +123,98 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 		ofSetColor(255);
 		ofDrawBitmapString("+ [ Log ] ", minimizedRect.x + 10, minimizedRect.getBottom() - 4);
 	} else {
+
+		dragSpeed *= 0.6;
+
+		//clamp scrolling to lines we own
+		if(!scrolling){
+			float filter = 0.85f;
+			float limit = lineH * logLines.size() - ofGetHeight();
+
+			if(scrollV < -limit){
+				scrollV = filter * scrollV + -limit * (1.0f - filter);
+				inertia *= 0.6;
+			}
+			if(scrollV > 0){
+				scrollV = scrollV * filter;
+				inertia *= 0.6;
+				//inertia = 0;
+			}
+
+			scrollV += inertia;
+			inertia *= 0.94;
+		}
+
 		float x = ofGetWidth() - width;
 
 		ofRect(x, 0, width, ofGetHeight());
 
 		if(!useColors)ofSetColor(200);
 		int pos = 0;
+
 		#ifdef USE_OFX_FONTSTASH
-		int lineH = 16;
-		if(font){
-			lineH = font->getBBox("M", fontSize, 0, 0).height; //find line height with "M" char
-		}
 		font->beginBatch();
 		#endif
 
 		deque<LogLine> linesCopy;
+
 		mutex.lock();
 		linesCopy = logLines;
 		mutex.unlock();
 
+		bool drawn = false;
 		for(int i = logLines.size() - 1; i >=0; i--) {
 			if(useColors) ofSetColor(logColors[linesCopy[i].level]);
+			bool drawLine = true;
 			#ifdef USE_OFX_FONTSTASH
-			float yy = ofGetHeight() - pos * lineH * 1.33;
-			if(yy<0) break;
-			if(font) font->drawBatch(linesCopy[i].line, fontSize, x + 22, yy - 5);
+			float yy = ofGetHeight() - pos * lineH - scrollV;
+			if(yy < 0){
+				newestLineOnScreen = i;
+				break;
+			}
+			if(yy > ofGetHeight()) drawLine = false;
+			if(font && drawLine){
+				if(!drawn){
+					oldestLineOnScreen = i;
+					drawn = true;
+				}
+				font->drawBatch(linesCopy[i].line, fontSize, x + 22, yy - 5);
+			}
 			#else
-			float yy = ofGetHeight() - pos * 20 - 5;
-			if(yy<0) break;
-			ofDrawBitmapString(linesCopy[i].line, x + 20, yy);
+			float yy = ofGetHeight() - pos * lineH - 5 - scrollV;
+			if(yy < 0){
+				newestLineOnScreen = i;
+				break;
+			}
+			if(yy > ofGetHeight()) drawLine = false;
+			if(drawLine){
+				if(!drawn){
+					oldestLineOnScreen = i;
+					drawn = true;
+				}
+				ofDrawBitmapString(linesCopy[i].line, x + 20, yy);
+			}
 			#endif
 			pos++;
 		}
-		mutex.unlock();
 
 		#ifdef USE_OFX_FONTSTASH
 		font->endBatch();
 		#endif
+
 		ofSetColor(44, 255);
-		ofRect(ofGetWidth() - width, 0, 20, ofGetHeight());
+		float xx = ofGetWidth() - width;
+		ofRect(xx, 0, 20, ofGetHeight());
 		ofSetColor(255);
 		float yy = ofGetHeight()/2;
 		ofLine(x+8, yy - 10, x+8, yy+10);
 		ofLine(x+12, yy - 10, x+12, yy+10);
-		ofDrawBitmapString("x", ofGetWidth() - width + 5, ofGetHeight() - 5);
+		ofDrawBitmapString("x", ofGetWidth() - width + 6, ofGetHeight() - 5);
+		ofSetColor(0,0,0);
+		float y1 = ofMap(oldestLineOnScreen, 0, logLines.size(), 0, ofGetHeight());
+		float y2 = ofMap(newestLineOnScreen, 0, logLines.size(), 0, ofGetHeight());
+		ofSetColor(255,64);
+		ofRect(xx + 5, y1, 10, y2 - y1);
 	}
 	ofPopStyle();
 }
@@ -166,14 +224,30 @@ void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
 		draggingWidth = true;
 		mouseDragged(e);
 	}
+	if(!minimized && (e.x > width && e.x < ofGetWidth())) {
+		scrolling = true;
+		prevY = e.y;
+		inertia = 0;
+		dragSpeed = 0;
+	}
+
 }
+
 void ofxSuperLogDisplay::mouseMoved(ofMouseEventArgs &e) {
 }
+
 void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
 	if(draggingWidth) {
 		width = 10 + ofGetWidth() - e.x;
 		width = MAX(10, width);
 		width = MIN(ofGetWidth() - 10, width);
+	}
+
+	if(scrolling && !draggingWidth){
+		dragSpeed = (e.y - prevY) * lineH * 0.25;
+		inertia = -dragSpeed;
+		scrollV -= dragSpeed;
+		prevY = e.y;
 	}
 }
 	   
@@ -189,12 +263,19 @@ void ofxSuperLogDisplay::mouseReleased(ofMouseEventArgs &e) {
 				minimized = true;
 			}
 		}
+		if(scrolling){
+			inertia = -dragSpeed;
+		}
 	}
 	draggingWidth = false;
+	scrolling = false;
 }
 
 void ofxSuperLogDisplay::setMinimized(bool minimized) {
 	this->minimized  = minimized;
+	inertia = 0;
+	scrolling = false;
+	scrollV = 0;
 }
 
 bool ofxSuperLogDisplay::isMinimized() {

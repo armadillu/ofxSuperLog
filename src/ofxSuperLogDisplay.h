@@ -17,7 +17,7 @@
 
 #pragma once
 #include "ofMain.h"
-#define DEFAULT_NUM_LOG_LINES 50
+#define DEFAULT_NUM_LOG_LINES 300
 
 #ifdef USE_OFX_FONTSTASH
 #include "ofxFontStash.h"
@@ -40,7 +40,7 @@ public:
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ logColors[l] = c;}
 	
 	#ifdef USE_OFX_FONTSTASH
-	void setFont(ofxFontStash* f, float fontSize_ = 16.0f){font = f; fontSize = fontSize_;}
+	void setFont(ofxFontStash* f, float fontSize_ = 16.0f);
 	#endif
 
 	void draw(ofEventArgs &e);
@@ -74,6 +74,15 @@ protected:
 	ofRectangle minimizedRect;
 	bool draggingWidth;
 
+	//scroll v
+	bool scrolling;
+	float scrollV;
+	float prevY, prevY2;
+	int oldestLineOnScreen;
+	int newestLineOnScreen;
+	float inertia;
+	float dragSpeed;
+
 	ofMutex mutex;
 
 	bool useColors;
@@ -83,4 +92,5 @@ protected:
 	ofxFontStash * font;
 	float fontSize;
 	#endif
+	float lineH;
 };

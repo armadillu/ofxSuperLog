@@ -15,8 +15,6 @@ ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScree
 		logger = ofPtr<ofxSuperLog>(logPtr);
 
 	}
-
-
 	return logger;
 }
 
