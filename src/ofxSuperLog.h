@@ -73,6 +73,7 @@
 #define LOG_FATAL_ERROR				ofLogFatalError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
 #define LOG_STATIC					ofLog() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << NOTICE_EMOJI << " "
 #define LOG_STATIC_ERROR			ofLogError() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << ERR_EMOJI << " "
+#define LOG_STATIC_FATAL_ERROR		ofLogFatalError() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << F_ERR_EMOJI << " "
 
 //same as normal, but specifying a module
 //this way you can shut individual modules with ofSetLogLevel(moduleName, level);
