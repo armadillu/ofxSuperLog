@@ -71,13 +71,14 @@
 #define LOG_WARNING					ofLogWarning(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << WARN_EMOJI << " "
 #define LOG_ERROR					ofLogError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << ERR_EMOJI << " "
 #define LOG_FATAL_ERROR				ofLogFatalError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
+
+//for static methods
 #define LOG_STATIC					ofLog() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << NOTICE_EMOJI << " "
 #define LOG_STATIC_ERROR			ofLogError() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << ERR_EMOJI << " "
 #define LOG_STATIC_FATAL_ERROR		ofLogFatalError() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << F_ERR_EMOJI << " "
 
 //same as normal, but specifying a module
 //this way you can shut individual modules with ofSetLogLevel(moduleName, level);
-
 #define MLOG(module)				ofLogNotice(module) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
 #define MLOG_VERBOSE(module)		ofLogVerbose(module) << LOG_CONTEXTUAL_INFO << " "
 #define MLOG_WARNING(module)		ofLogWarning(module) << LOG_CONTEXTUAL_INFO << " " << WARN_EMOJI << " "
@@ -85,13 +86,13 @@
 #define MLOG_FATAL_ERROR(module)	ofLogFatalError(module) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
 #define MLOG_STATIC(module)			ofLogNotice(module) << LOG_CONTEXTUAL_INFO_STATIC << " " << NOTICE_EMOJI << " "
 
-//short
-#define SLOG						ofLog() << LOG_TIMESTAMP << NOTICE_EMOJI << " "
+//short log - less info
+#define SLOG						ofLog() << LOG_TIMESTAMP << " " << NOTICE_EMOJI << " "
 #define SLOG_VERBOSE				ofLogVerbose() << LOG_TIMESTAMP << " "
-#define SLOG_NOTICE					ofLogNotice() << LOG_TIMESTAMP << NOTICE_EMOJI << " "
-#define SLOG_WARNING				ofLogWarning() << LOG_TIMESTAMP << WARN_EMOJI << " "
-#define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << ERR_EMOJI << " "
-#define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << F_ERR_EMOJI << " "
+#define SLOG_NOTICE					ofLogNotice() << LOG_TIMESTAMP << " " << NOTICE_EMOJI << " "
+#define SLOG_WARNING				ofLogWarning() << LOG_TIMESTAMP << " " << WARN_EMOJI << " "
+#define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << " " << ERR_EMOJI << " "
+#define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << " " << F_ERR_EMOJI << " "
 
 
 static char demangleSpace[4096];
