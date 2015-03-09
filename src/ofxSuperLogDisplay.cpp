@@ -27,7 +27,9 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	scrollV = 0;
 	lineH = 20;
 	inertia = 0;
+	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
+	#endif
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
