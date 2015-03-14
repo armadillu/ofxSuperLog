@@ -31,6 +31,10 @@
 #include "ofMain.h"
 #include "ofxSuperLogDisplay.h"
 
+#ifdef TARGET_OSX
+#include <cxxabi.h>
+#endif
+
 #ifdef USE_OFX_FONTSTASH
 #include "ofxFontStash.h"
 #endif
@@ -96,7 +100,7 @@
 
 
 static char demangleSpace[4096];
-static ofMutex mutex;
+static ofMutex logMutex;
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
 	#ifdef TARGET_WIN32
@@ -125,7 +129,7 @@ inline std::string demangled_type_info_name(const std::type_info&ti){
 	#else
 	int status = 0;
 	size_t len = 4096;
-	ofMutex::ScopedLock Lock( mutex );
+	ofMutex::ScopedLock Lock( logMutex );
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
 	string finalS = string(demangleSpace);
 	if(finalS.size() > 0){
