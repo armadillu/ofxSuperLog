@@ -116,6 +116,8 @@ void ofxSuperLogDisplay::log(ofLogLevel logLevel, const string & module, const c
 
 void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 
+	if(logLines.size() == 0) return;
+
 	ofPushStyle();
 	ofEnableAlphaBlending();
 	ofSetColor(0, 240);
