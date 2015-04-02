@@ -42,7 +42,35 @@ ofxSuperLog::~ofxSuperLog() {
 }
 
 
+void ofxSuperLog::clearOldLogs(string path, int numDays){
 
+	string ppath = ofFilePath::getPathForDirectory(path);
+	if(ppath.empty()){
+		return;
+	}
+	string originalDirectory = ppath;
+	Poco::File myDir = Poco::File::File(ofToDataPath(ppath));
+
+	if(myDir.exists()){
+		vector<Poco::File>files;
+		myDir.list(files);
+		for(int i=0;i<(int)files.size();i++){
+			Poco::Timestamp mod = files[i].getLastModified();
+			Poco::Timestamp now;
+			Poco::Timestamp::TimeDiff diffInMicroSecs = now - mod;
+			int secondsOld = diffInMicroSecs / 1000000;
+			int minutesOld = secondsOld/60;
+			int hoursOld = minutesOld/60;
+			if(hoursOld > (24 * numDays)){
+				files[i].remove(false);
+			}
+		}
+		return;
+	}else{
+		myDir.createDirectory();
+		return;
+	}
+}
 
 void ofxSuperLog::archiveOldLogs(int numUncompressedToKeep, int numCompressedToKeep) {
     if(numUncompressedToKeep==-1) return;

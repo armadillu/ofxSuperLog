@@ -182,6 +182,7 @@ public:
 	virtual ~ofxSuperLog();
 
 
+	static void clearOldLogs(string path, int numDays);
 
 private:
 	static ofPtr<ofxSuperLog> logger;
