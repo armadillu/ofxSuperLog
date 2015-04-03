@@ -31,6 +31,8 @@ public:
 	
 	void setMaxNumLogLines(int maxNumLogLines);
 	void setEnabled(bool enabled);
+	bool getEnabled(){return enabled;}
+	void setAutoDraw(bool d){ autoDraw = d;}
 	bool isEnabled();
 	
 	void setMinimized(bool minimized);
@@ -43,7 +45,7 @@ public:
 	void setFont(ofxFontStash* f, float fontSize_ = 16.0f);
 	#endif
 
-	void draw(ofEventArgs &e);
+	void draw(float w, float h); //for manual drawing
 	
 	void mousePressed(ofMouseEventArgs &e);
 	void mouseMoved(ofMouseEventArgs &e);
@@ -58,6 +60,8 @@ public:
 	
 protected:
 
+	void draw(ofEventArgs &e);
+
 	struct LogLine{
 		string line;
 		ofLogLevel level;
@@ -65,7 +69,11 @@ protected:
 	};
 
 	bool enabled;
+	bool autoDraw;
 	deque<LogLine> logLines;
+
+	float lastW; //manual drawing
+	float lastH;
 
 	int MAX_NUM_LOG_LINES;
 	bool minimized;

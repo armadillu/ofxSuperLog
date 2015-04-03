@@ -171,7 +171,7 @@ public:
 
 	void setUseScreenColors(bool u){ displayLogger.setUseColors(u); }
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ displayLogger.setColorForLogLevel(l, c); }
-
+	void setAutoDraw(bool autoDraw){displayLogger.setAutoDraw(autoDraw);}
 
 	void log(ofLogLevel level, const string & module, const string & message);
 
@@ -181,6 +181,8 @@ public:
 
 	virtual ~ofxSuperLog();
 
+
+	void draw(float w, float h);
 
 	static void clearOldLogs(string path, int numDays);
 

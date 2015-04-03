@@ -139,6 +139,10 @@ void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* fo
 	if(loggingToScreen) displayLogger.log(logLevel, module, aux64);
 }
 
+void ofxSuperLog::draw(float w, float h){
+	displayLogger.draw(w, h);
+}
+
 void ofxSuperLog::setMaxNumLogLines(int maxNumLogLines) {
 	displayLogger.setMaxNumLogLines(maxNumLogLines);
 }
