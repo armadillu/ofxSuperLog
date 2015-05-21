@@ -40,6 +40,7 @@ public:
 
 	void setUseColors(bool useC){useColors = useC;};
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ logColors[l] = c;}
+	void setPanelWidth(float w){width = w;}
 	
 	#ifdef USE_OFX_FONTSTASH
 	void setFont(ofxFontStash* f, float fontSize_ = 16.0f);
