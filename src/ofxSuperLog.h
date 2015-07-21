@@ -103,6 +103,9 @@ static char demangleSpace[4096];
 static ofMutex logMutex;
 
 inline std::string demangled_type_info_name(const std::type_info&ti){
+
+	ofScopedLock lock(logMutex);
+
 	#ifdef TARGET_WIN32
 	static std::vector<std::string> keywords;
 	if ( 0 == keywords.size() ) {
@@ -129,7 +132,6 @@ inline std::string demangled_type_info_name(const std::type_info&ti){
 	#else
 	int status = 0;
 	size_t len = 4096;
-	ofMutex::ScopedLock Lock( logMutex );
 	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
 	string finalS = string(demangleSpace);
 	if(finalS.size() > 0){
