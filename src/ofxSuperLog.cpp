@@ -5,6 +5,7 @@
  */
 
 #include "ofxSuperLog.h"
+#include "Poco/File.h"
 
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
@@ -48,7 +49,7 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 	if(ppath.empty()){
 		return;
 	}
-#if (OF_VERSION_MINOR < 9)
+
 	string originalDirectory = ppath;
 	Poco::File myDir = Poco::File::File(ofToDataPath(ppath));
 
@@ -71,10 +72,6 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 		myDir.createDirectory();
 		return;
 	}
-#else
-	ofLogError("ofxSuperLog") << "clearOldLogs() not implemented for OF v0.9 yet!";
-#endif
-
 }
 
 void ofxSuperLog::archiveOldLogs(int numUncompressedToKeep, int numCompressedToKeep) {
