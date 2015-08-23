@@ -40,7 +40,11 @@ public:
 
 	void setUseColors(bool useC){useColors = useC;};
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ logColors[l] = c;}
-	void setPanelWidth(float w){width = w;}
+
+	///this defines how much space the on-screen logging will take when the log is visible
+	///the panel is always on the right side. You must supply a % [0..1] of how much of the
+	///whole screen the panel takes.
+	void setPanelWidth(float pct){widthPct = pct;}
 	
 	#ifdef USE_OFX_FONTSTASH
 	void setFont(ofxFontStash* f, float fontSize_ = 16.0f);
@@ -79,7 +83,7 @@ protected:
 	int MAX_NUM_LOG_LINES;
 	bool minimized;
 	
-	float width;
+	float widthPct; //how wide is the logging scrollist , pct of ofGetWidth()
 	ofRectangle minimizedRect;
 	bool draggingWidth;
 

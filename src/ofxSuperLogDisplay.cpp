@@ -15,7 +15,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	lastW = ofGetWidth();
 	lastH = ofGetHeight();
 
-	width = lastW * 0.5f;
+	widthPct = 0.5f;
 	draggingWidth = scrolling = false;
 
 	//init some default colors for the log lines
@@ -148,7 +148,7 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 		//clamp scrolling to lines we own
 		if(!scrolling){
 			float filter = 0.85f;
-			float limit = lineH * logLines.size() - w;
+			float limit = lineH * logLines.size() - h;
 
 			if(scrollV < -limit){
 				scrollV = filter * scrollV + -limit * (1.0f - filter);
@@ -164,9 +164,9 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 			inertia *= 0.94;
 		}
 
-		float x = w - width;
+		float x = w * (1. - widthPct);
 
-		ofRect(x, 0, width, h);
+		ofRect(x, 0, w * widthPct, h);
 
 		if(!useColors)ofSetColor(200);
 		int pos = 0;
@@ -225,13 +225,13 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 		#endif
 
 		ofSetColor(44, 255);
-		float xx = w - width;
+		float xx = w * (1.0f - widthPct);
 		ofRect(xx, 0, 20, h);
 		ofSetColor(255);
 		float yy = ofGetHeight()/2;
 		ofLine(x+8, yy - 10, x+8, yy+10);
 		ofLine(x+12, yy - 10, x+12, yy+10);
-		ofDrawBitmapString("x", w - width + 6, h - 5);
+		ofDrawBitmapString("x", w - w * widthPct + 6, h - 5);
 		ofSetColor(0,0,0);
 		float y1 = ofMap(oldestLineOnScreen, 0, logLines.size(), 0, h);
 		float y2 = ofMap(newestLineOnScreen, 0, logLines.size(), 0, h);
@@ -242,11 +242,11 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 }
 
 void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
-	if(!minimized && ABS(e.x - (lastW - width))<20) {
+	if(!minimized && ABS(e.x - (lastW * widthPct))<20) {
 		draggingWidth = true;
 		mouseDragged(e);
 	}
-	if(!minimized && (e.x > (lastW - width))) {
+	if(!minimized && (e.x > (lastW * widthPct))) {
 		scrolling = true;
 		prevY = e.y;
 		inertia = 0;
@@ -259,10 +259,12 @@ void ofxSuperLogDisplay::mouseMoved(ofMouseEventArgs &e) {
 }
 
 void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
+	int width;
 	if(draggingWidth) {
 		width = 10 + lastW - e.x;
 		width = MAX(10, width);
 		width = MIN(ofGetWidth() - 10, width);
+		widthPct = 1.0f - width / lastW;
 	}
 
 	if(scrolling && !draggingWidth){
@@ -281,7 +283,7 @@ void ofxSuperLogDisplay::mouseReleased(ofMouseEventArgs &e) {
 		}
 	} else {
 		if(e.y > lastH - 20) {
-			if(ABS(e.x - (lastW - width)) < 20) {
+			if(ABS(e.x - (lastW * widthPct)) < 20) {
 				minimized = true;
 			}
 		}

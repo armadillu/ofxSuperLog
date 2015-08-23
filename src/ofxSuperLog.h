@@ -174,7 +174,11 @@ public:
 	void setUseScreenColors(bool u){ displayLogger.setUseColors(u); }
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ displayLogger.setColorForLogLevel(l, c); }
 	void setAutoDraw(bool autoDraw){displayLogger.setAutoDraw(autoDraw);}
-	void setDisplayWidth( float w){displayLogger.setPanelWidth(w);}
+
+	///this defines how much space the on-screen logging will take when the log is visible
+	///the panel is always on the right side. You must supply a % [0..1] of how much of the
+	///whole screen the panel takes.
+	void setDisplayWidth( float widthPercent){displayLogger.setPanelWidth(widthPercent);}
 
 	void log(ofLogLevel level, const string & module, const string & message);
 
