@@ -242,11 +242,11 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 }
 
 void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
-	if(!minimized && ABS(e.x - (lastW * widthPct))<20) {
+	if(!minimized && ABS(e.x - (lastW * (1.0f - widthPct)))<20) {
 		draggingWidth = true;
 		mouseDragged(e);
 	}
-	if(!minimized && (e.x > (lastW * widthPct))) {
+	if(!minimized && (e.x > (lastW * (1.0f - widthPct)))) {
 		scrolling = true;
 		prevY = e.y;
 		inertia = 0;
@@ -264,7 +264,7 @@ void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
 		width = 10 + lastW - e.x;
 		width = MAX(10, width);
 		width = MIN(ofGetWidth() - 10, width);
-		widthPct = 1.0f - width / lastW;
+		widthPct = width / lastW;
 	}
 
 	if(scrolling && !draggingWidth){
@@ -283,7 +283,7 @@ void ofxSuperLogDisplay::mouseReleased(ofMouseEventArgs &e) {
 		}
 	} else {
 		if(e.y > lastH - 20) {
-			if(ABS(e.x - (lastW * widthPct)) < 20) {
+			if(ABS(e.x - (lastW * (1.0f - widthPct))) < 20) {
 				minimized = true;
 			}
 		}
