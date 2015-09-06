@@ -34,6 +34,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
 	#endif
+	logLines.push_back(LogLine("######### ofxSuperLog Start #########", OF_LOG_NOTICE));
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
