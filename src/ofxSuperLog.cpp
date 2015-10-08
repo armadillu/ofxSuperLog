@@ -65,12 +65,11 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 			int hoursOld = minutesOld/60;
 			if(hoursOld > (24 * numDays)){
 				files[i].remove(false);
+				ofLogNotice("ofxSuperLog") << "removing old log at \"" << files[i].path() << "\" bc it's more than " << numDays << " days old.";
 			}
 		}
-		return;
 	}else{
 		myDir.createDirectory();
-		return;
 	}
 }
 
