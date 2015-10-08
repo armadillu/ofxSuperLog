@@ -41,9 +41,13 @@
 
 #pragma once
 
-#define LOG_TIMESTAMP				string(ofToString(ofGetHours(), 2, '0')			\
-									+ ":" + ofToString(ofGetMinutes(), 2, '0')		\
-									+ ":" + ofToString(ofGetSeconds(), 2, '0') )
+#define LOG_TIMESTAMP				string(	"[" + \
+									ofToString(ofGetYear()) + 					\
+									"/" + ofToString(ofGetMonth(), 2, '0') + 			\
+									"/" + ofToString(ofGetDay(), 2, '0') + 			\
+									" " + ofToString(ofGetHours(), 2, '0') +			\
+									":" + ofToString(ofGetMinutes(), 2, '0') +			\
+									":" + ofToString(ofGetSeconds(), 2, '0') + "]" )			\
 
 //#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
 
