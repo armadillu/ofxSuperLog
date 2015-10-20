@@ -196,6 +196,8 @@ public:
 	void draw(float w, float h);
 
 	static void clearOldLogs(string path, int numDays);
+    
+    ofxSuperLogDisplay& getDisplayLogger(){return displayLogger;}
 
 private:
 	static ofPtr<ofxSuperLog> logger;
