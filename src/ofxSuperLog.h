@@ -29,6 +29,13 @@
 
 
 #include "ofMain.h"
+
+#if defined(__has_include) /*llvm only - query about header files being available or not*/
+	#if __has_include("ofxFontStash.h") && !defined(DISABLE_AUTO_FIND_FONSTASH_HEADERS)
+		#define USE_OFX_FONTSTASH
+	#endif
+#endif
+
 #include "ofxSuperLogDisplay.h"
 
 #ifdef TARGET_OSX
@@ -102,11 +109,10 @@
 #define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << " " << ERR_EMOJI << " "
 #define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << " " << F_ERR_EMOJI << " "
 
-
-static char demangleSpace[4096];
-static ofMutex logMutex;
-
 inline std::string demangled_type_info_name(const std::type_info&ti){
+
+	static char demangleSpace[4096];
+	static ofMutex logMutex;
 
 	ofScopedLock lock(logMutex);
 
