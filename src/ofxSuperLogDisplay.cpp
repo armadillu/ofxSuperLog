@@ -139,7 +139,7 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 
 	if(minimized) {
 		minimizedRect.set(w -150, h - 20, 150, 20);
-		ofRect(minimizedRect);
+		ofDrawRectangle(minimizedRect);
 		ofSetColor(255);
 		ofDrawBitmapString("+ [ Log ] ", minimizedRect.x + 10, minimizedRect.getBottom() - 4);
 	} else {
@@ -167,7 +167,7 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 
 		float x = w * (1. - widthPct);
 
-		ofRect(x, 0, w * widthPct, h);
+		ofDrawRectangle(x, 0, w * widthPct, h);
 
 		if(!useColors)ofSetColor(200);
 		int pos = 0;
@@ -227,17 +227,17 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 
 		ofSetColor(44, 255);
 		float xx = w * (1.0f - widthPct);
-		ofRect(xx, 0, 20, h);
+		ofDrawRectangle(xx, 0, 20, h);
 		ofSetColor(255);
 		float yy = ofGetHeight()/2;
-		ofLine(x+8, yy - 10, x+8, yy+10);
-		ofLine(x+12, yy - 10, x+12, yy+10);
+		ofDrawLine(x+8, yy - 10, x+8, yy+10);
+		ofDrawLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", w - w * widthPct + 6, h - 5);
 		ofSetColor(0,0,0);
 		float y1 = ofMap(oldestLineOnScreen, 0, logLines.size(), 0, h);
 		float y2 = ofMap(newestLineOnScreen, 0, logLines.size(), 0, h);
 		ofSetColor(255,64);
-		ofRect(xx + 5, y1, 10, y2 - y1);
+		ofDrawRectangle(xx + 5, y1, 10, y2 - y1);
 	}
 	ofPopStyle();
 }
