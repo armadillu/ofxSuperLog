@@ -5,7 +5,6 @@
  */
 
 #include "ofxSuperLog.h"
-#include "Poco/File.h"
 
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
@@ -47,29 +46,33 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 
 	string ppath = ofFilePath::getPathForDirectory(path);
 	if(ppath.empty()){
+		ofLogError("ofxSuperLog") << "can't clearOldLogs; supplied path not found: " << path;
 		return;
 	}
 
-	string originalDirectory = ppath;
-	Poco::File myDir = Poco::File::File(ofToDataPath(ppath));
+	ofDirectory dir;
+	dir.listDir(ppath);
 
-	if(myDir.exists()){
-		vector<Poco::File>files;
-		myDir.list(files);
-		for(int i=0;i<(int)files.size();i++){
-			Poco::Timestamp mod = files[i].getLastModified();
-			Poco::Timestamp now;
-			Poco::Timestamp::TimeDiff diffInMicroSecs = now - mod;
-			int secondsOld = diffInMicroSecs / 1000000;
-			int minutesOld = secondsOld/60;
-			int hoursOld = minutesOld/60;
-			if(hoursOld > (24 * numDays)){
-				files[i].remove(false);
-				ofLogNotice("ofxSuperLog") << "removing old log at \"" << files[i].path() << "\" bc it's more than " << numDays << " days old.";
+	if(!dir.exists()){
+		dir.create();
+	}else{
+		std::time_t now = std::time( nullptr ) ;
+
+		for(int i = 0; i < dir.size() ; i++){
+			string logFilePath = dir.getPath(i);
+			string logFileAbsolutePath = ofToDataPath(logFilePath, true);
+			std::time_t lastMod = std::filesystem::last_write_time(logFileAbsolutePath);
+
+			int secondsOld = std::difftime(now, lastMod);
+			int daysOld = secondsOld / (60 * 60 * 24);
+			if(daysOld > numDays){
+				ofLogNotice("ofxSuperLog") << "removing old log at \"" << logFilePath << "\" bc it's more than " << numDays << " days old.";
+				bool didRemove = ofFile::removeFile(logFileAbsolutePath, false);
+				if(!didRemove){
+					ofLogError("ofxSuperLog") << "couldn't delete log at " << logFileAbsolutePath;
+				}
 			}
 		}
-	}else{
-		myDir.createDirectory();
 	}
 }
 
