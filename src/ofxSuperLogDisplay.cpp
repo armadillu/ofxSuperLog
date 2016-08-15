@@ -45,6 +45,8 @@ void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
 	font = f;
 	fontSize = fontSize_;
 	lineH = font->getBBox("M", fontSize, 0, 0).height * 1.4; //find line height with "M" char
+	ofLogError("ofxSuperLogDisplay") << "FontStash lineH reported 0!";
+	if(lineH <= 0) lineH = 20;
 }
 #endif
 
@@ -181,14 +183,15 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 		mutex.lock();
 		linesCopy = logLines;
 		mutex.unlock();
-
+		float yy;
 		bool drawn = false;
-		for(int i = logLines.size() - 1; i >=0; i--) {
+
+		for(int i = logLines.size() - 1; i >= 0; i--) {
 			if(useColors) ofSetColor(logColors[linesCopy[i].level]);
 			bool drawLine = true;
 			#ifdef USE_OFX_FONTSTASH
 			if(font){
-				float yy = h - pos * lineH - scrollV;
+				yy = h - pos * lineH - scrollV;
 				if(yy < 0){
 					newestLineOnScreen = i;
 					break;
@@ -204,7 +207,7 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 			}else
 			#endif
 			{
-				float yy = h - pos * lineH - 5 - scrollV;
+				yy = h - pos * lineH - 5 - scrollV;
 				if(yy < 0){
 					newestLineOnScreen = i;
 					break;
@@ -229,7 +232,7 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 		float xx = w * (1.0f - widthPct);
 		ofDrawRectangle(xx, 0, 20, h);
 		ofSetColor(255);
-		float yy = ofGetHeight()/2;
+		yy = ofGetHeight()/2;
 		ofDrawLine(x+8, yy - 10, x+8, yy+10);
 		ofDrawLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", w - w * widthPct + 6, h - 5);
