@@ -29,12 +29,12 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 
 	useColors = true;
 	scrollV = 0;
-	lineH = 20;
+	lineH = 15;
 	inertia = 0;
 	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
 	#endif
-	logLines.push_back(LogLine("######### ofxSuperLog Start #########", OF_LOG_NOTICE));
+	logLines.push_back(LogLine("", "######### ofxSuperLog Start #########", OF_LOG_NOTICE));
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
@@ -45,8 +45,10 @@ void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
 	font = f;
 	fontSize = fontSize_;
 	lineH = font->getBBox("M", fontSize, 0, 0).height * 1.4; //find line height with "M" char
-	ofLogError("ofxSuperLogDisplay") << "FontStash lineH reported 0!";
-	if(lineH <= 0) lineH = 20;
+	if(lineH <= 0){
+		ofLogError("ofxSuperLogDisplay") << "FontStash lineH reported 0!";
+		lineH = 20;
+	}
 }
 #endif
 
@@ -90,23 +92,26 @@ bool ofxSuperLogDisplay::isEnabled() {
 
 void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const string & message) {
 
+	if(module.size() > maxModuleLen) maxModuleLen = module.size();
+	string pad; pad.append(maxModuleLen - module.size(), ' ');
+	string modName = pad + module;
+
 	mutex.lock();
 	if(message.find('\n')==-1) {
-
-		logLines.push_back(LogLine(string(module + ": " + ofGetLogLevelName(level) + ": " + message),
-								   level)
-						   );
+		logLines.push_back(LogLine(modName, message, level));
 	} else {
 		vector<string> lines = ofSplitString(message,"\n");
 		for(int i = 0; i < lines.size(); i++) {
 			if(i==0) {
-				logLines.push_back(LogLine(module + ": " + ofGetLogLevelName(level) + ": " + lines[0], level));
+				logLines.push_back(LogLine(modName, lines[0], level));
 			} else {
-				logLines.push_back(LogLine("\t" + lines[i], level));
+				string emptyModName;
+				emptyModName.append(maxModuleLen, ' ');
+				logLines.push_back(LogLine(emptyModName, lines[i], level));
 			}
 		}
 	}
-	while(logLines.size()>MAX_NUM_LOG_LINES) {
+	while(logLines.size() > MAX_NUM_LOG_LINES) {
 		logLines.pop_front();
 	}
 	mutex.unlock();
@@ -185,9 +190,11 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 		mutex.unlock();
 		float yy;
 		bool drawn = false;
+		int longestModuleName = 0;
+		int postModuleX = 0;
+		string separator = " | ";
 
 		for(int i = logLines.size() - 1; i >= 0; i--) {
-			if(useColors) ofSetColor(logColors[linesCopy[i].level]);
 			bool drawLine = true;
 			#ifdef USE_OFX_FONTSTASH
 			if(font){
@@ -197,12 +204,21 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 					break;
 				}
 				if(yy > h) drawLine = false;
-				if(font && drawLine){
+				if(drawLine){
 					if(!drawn){
 						oldestLineOnScreen = i;
 						drawn = true;
 					}
-					font->drawBatch(linesCopy[i].line, fontSize, x + 22, yy - 5);
+					if(longestModuleName < linesCopy[i].module.size()){
+						longestModuleName = linesCopy[i].module.size();
+						postModuleX = font->getBBox(linesCopy[i].module, fontSize, 0, 0).width;
+					}
+					if(linesCopy[i].module.size()){
+						if(useColors) ofSetColor(getColorForModule(linesCopy[i].module));
+						font->drawBatch(linesCopy[i].module, fontSize, x + 22, yy - 5);
+					}
+					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
+					font->drawBatch(separator + linesCopy[i].line, fontSize, x + 22 + postModuleX, yy - 5);
 				}
 			}else
 			#endif
@@ -218,7 +234,16 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 						oldestLineOnScreen = i;
 						drawn = true;
 					}
-					ofDrawBitmapString(linesCopy[i].line, x + 20, yy);
+					if(longestModuleName < linesCopy[i].module.size()){
+						longestModuleName = linesCopy[i].module.size();
+						postModuleX = (longestModuleName) * 8;
+					}
+					if(linesCopy[i].module.size()){
+						if(useColors) ofSetColor(getColorForModule(linesCopy[i].module));
+						ofDrawBitmapString(linesCopy[i].module, x + 20, yy );
+					}
+					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
+					ofDrawBitmapString(separator + linesCopy[i].line, x + 20 + postModuleX, yy);
 				}
 			}
 			pos++;
@@ -244,6 +269,19 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 	}
 	ofPopStyle();
 }
+
+
+ofColor& ofxSuperLogDisplay::getColorForModule(const string& modName){
+	auto search = moduleColors.find(modName);
+	if(search == moduleColors.end()){
+		ofColor c; c.setHsb(( 30 + moduleColors.size() * 36)%255, 200, 255);
+		moduleColors[modName] = c;
+		return moduleColors[modName];
+
+	}
+	return search->second;
+}
+
 
 void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
 	if(!minimized && ABS(e.x - (lastW * (1.0f - widthPct)))<20) {

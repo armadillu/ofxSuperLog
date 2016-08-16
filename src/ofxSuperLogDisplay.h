@@ -17,7 +17,7 @@
 
 #pragma once
 #include "ofMain.h"
-#define DEFAULT_NUM_LOG_LINES 300
+#define DEFAULT_NUM_LOG_LINES 4096
 
 #if defined(__has_include) /*llvm only - query about header files being available or not*/
 	#if __has_include("ofxFontStash.h") && !defined(DISABLE_AUTO_FIND_FONSTASH_HEADERS)
@@ -75,8 +75,9 @@ protected:
 
 	struct LogLine{
 		string line;
+		string module;
 		ofLogLevel level;
-		LogLine(string lin, ofLogLevel lev){ line = lin; level = lev; }
+		LogLine(string modName, string lin, ofLogLevel lev){ line = lin; module = modName, level = lev; }
 	};
 
 	bool enabled;
@@ -85,6 +86,8 @@ protected:
 
 	float lastW; //manual drawing
 	float lastH;
+
+	ofColor& getColorForModule(const string& modName);
 
 	int MAX_NUM_LOG_LINES;
 	bool minimized;
@@ -106,10 +109,12 @@ protected:
 
 	bool useColors;
 	ofColor logColors[6]; //6 being the # of ofLogLevels. This is not very future proof - TODO!
+	map<string, ofColor> moduleColors;
 
 	#ifdef USE_OFX_FONTSTASH
 	ofxFontStash * font;
 	float fontSize;
 	#endif
 	float lineH;
+	size_t maxModuleLen = 0;
 };
