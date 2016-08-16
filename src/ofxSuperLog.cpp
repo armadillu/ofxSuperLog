@@ -21,6 +21,14 @@ ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScree
 
 ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory) {
 
+	if(const char* env_p = std::getenv("TERM")){ //see if term supports color!
+		ofLogNotice("ofxSuperLog") << "Your $TERM is: '" << env_p << "'";
+		if(ofIsStringInString(string(env_p), "xterm")){
+			colorTerm = true;
+			ofLogNotice("ofxSuperLog") << "Enabling colored console output";
+		}
+	}
+
 	this->loggingToFile = logDirectory!="";
 	this->loggingToScreen = drawToScreen;
 	this->loggingToConsole = writeToConsole;
@@ -31,7 +39,7 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 			dir.create();
 		}
 
-		fileLogger.setFile(logDirectory + "/" + ofGetTimestampString() + ".log", true);
+		fileLogger.setFile(logDirectory + "/" + ofGetTimestampString("%Y-%m-%d | %k-%M-%S | %A") + ".log", true);
 	}
 	if(drawToScreen) {
 		displayLogger.setEnabled(true);
@@ -100,29 +108,50 @@ c.close(); // MUST be done to finalize the Zip file
 */
 }
 
-
-void ofxSuperLog::log(ofLogLevel level, const string & module, const string & message) {
-
-	if(loggingToFile) fileLogger.log(level, module, message);
-	if(loggingToConsole) consoleLogger.log(level, module, message);
-	if(loggingToScreen) displayLogger.log(level, module, message);
-
-}
-
-void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, ...) {
-	va_list args;
-	va_start(args, format);
-	log(logLevel, module, format, args);
-	va_end(args);
-}
-
 #ifdef USE_OFX_FONTSTASH
 void ofxSuperLog::setFont(ofxFontStash * font, float fontSiz){
 	displayLogger.setFont(font, fontSiz);
 }
 #endif
 
+string ofxSuperLog::filterModuleName(const string & module){
 
+	if(module.size() > maxModuleLen) maxModuleLen = module.size();
+	string pad; pad.append(maxModuleLen - module.size(), ' ');
+	return pad + module;
+}
+
+void ofxSuperLog::log(ofLogLevel level, const string & module, const string & message) {
+
+	string filteredModName = filterModuleName(module);
+	if(loggingToFile) fileLogger.log(level, filteredModName, message);
+	if(loggingToScreen) displayLogger.log(level, filteredModName, message);
+	if(loggingToConsole){
+		if(colorTerm){ //colorize term output
+			string colorMsg;
+			switch (level) {
+				case OF_LOG_VERBOSE: colorMsg = "\033[0;37m"; break; //gray
+				case OF_LOG_NOTICE: colorMsg = "\033[0;34m"; break; //blue
+				case OF_LOG_WARNING: colorMsg = "\033[0;33m"; break; //yellow
+				case OF_LOG_ERROR: colorMsg = "\033[0;31m"; break; //red
+				case OF_LOG_FATAL_ERROR: colorMsg = "\033[0;35m"; break; //purple
+				default : break;
+			}
+			colorMsg += message + "\033[0;0m";
+			consoleLogger.log(level, filteredModName, colorMsg);
+		}else{
+			consoleLogger.log(level, filteredModName, message);
+		}
+	}
+}
+
+void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, ...) {
+
+	va_list args;
+	va_start(args, format);
+	log(logLevel, filterModuleName(module), format, args);
+	va_end(args);
+}
 
 char aux64_2[6000];//hopefully that's enough!
 char aux64[6000];
@@ -138,9 +167,11 @@ void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* fo
 		sprintf(aux64, "[%s] %s", ofGetLogLevelName(logLevel, true).c_str(), aux64_2);
 	}
 
-	if(loggingToFile) fileLogger.log(logLevel, module, aux64);
-	if(loggingToConsole) consoleLogger.log(logLevel, module, aux64);
-	if(loggingToScreen) displayLogger.log(logLevel, module, aux64);
+	string filteredModName = filterModuleName(module);
+
+	if(loggingToFile) fileLogger.log(logLevel, filteredModName, aux64);
+	if(loggingToScreen) displayLogger.log(logLevel, filteredModName, aux64);
+	if(loggingToConsole) consoleLogger.log(logLevel, filteredModName, aux64);
 }
 
 void ofxSuperLog::draw(float w, float h){

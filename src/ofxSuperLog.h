@@ -206,6 +206,7 @@ public:
     ofxSuperLogDisplay& getDisplayLogger(){return displayLogger;}
 
 private:
+
 	static ofPtr<ofxSuperLog> logger;
 	static ofxSuperLog *logPtr;
 	ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory);
@@ -219,4 +220,7 @@ private:
 	ofFileLoggerChannel fileLogger;
 	ofxSuperLogDisplay displayLogger;
 
+	string filterModuleName(const string &);
+	size_t maxModuleLen = 8; //len of the longest OF log module
+	bool colorTerm = false;
 };

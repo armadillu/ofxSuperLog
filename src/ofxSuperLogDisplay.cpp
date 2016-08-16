@@ -20,11 +20,11 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 
 	//init some default colors for the log lines
 	float gain = 0.99;
-	logColors[OF_LOG_VERBOSE] = ofColor(99) * gain;
+	logColors[OF_LOG_VERBOSE] = ofColor(128) * gain;
 	logColors[OF_LOG_NOTICE] = ofColor(60,130,240) * gain;
 	logColors[OF_LOG_WARNING] = ofColor(250,250,6) * gain;
 	logColors[OF_LOG_ERROR] = ofColor(240,0,0) * gain;
-	logColors[OF_LOG_FATAL_ERROR] = ofColor(140,32,170) * gain;
+	logColors[OF_LOG_FATAL_ERROR] = ofColor(250,0,222) * gain;
 	logColors[OF_LOG_SILENT] = ofColor(90) * gain;
 
 	useColors = true;
@@ -34,7 +34,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
 	#endif
-	logLines.push_back(LogLine("", "######### ofxSuperLog Start #########", OF_LOG_NOTICE));
+	logLines.push_back(LogLine("", "################## ofxSuperLog Start ##################", OF_LOG_WARNING));
 }
 
 ofxSuperLogDisplay::~ofxSuperLogDisplay() {
@@ -92,21 +92,19 @@ bool ofxSuperLogDisplay::isEnabled() {
 
 void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const string & message) {
 
-	if(module.size() > maxModuleLen) maxModuleLen = module.size();
-	string pad; pad.append(maxModuleLen - module.size(), ' ');
-	string modName = pad + module;
 
 	mutex.lock();
 	if(message.find('\n')==-1) {
-		logLines.push_back(LogLine(modName, message, level));
+		logLines.push_back(LogLine(module, message, level));
 	} else {
 		vector<string> lines = ofSplitString(message,"\n");
+		string emptyModName;
+		emptyModName.append(maxModuleLen, ' ');
+
 		for(int i = 0; i < lines.size(); i++) {
 			if(i==0) {
-				logLines.push_back(LogLine(modName, lines[0], level));
+				logLines.push_back(LogLine(module, lines[0], level));
 			} else {
-				string emptyModName;
-				emptyModName.append(maxModuleLen, ' ');
 				logLines.push_back(LogLine(emptyModName, lines[i], level));
 			}
 		}
@@ -172,9 +170,9 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 			inertia *= 0.94;
 		}
 
-		float x = w * (1. - widthPct);
+		int x = w * (1. - widthPct);
 
-		ofDrawRectangle(x, 0, w * widthPct, h);
+		ofDrawRectangle(x, 0, ceil(1 + w * widthPct), h);
 
 		if(!useColors)ofSetColor(200);
 		int pos = 0;
@@ -254,18 +252,17 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 		#endif
 
 		ofSetColor(44, 255);
-		float xx = w * (1.0f - widthPct);
-		ofDrawRectangle(xx, 0, 20, h);
+		ofDrawRectangle(x, 0, 20, h);
 		ofSetColor(255);
 		yy = ofGetHeight()/2;
-		ofDrawLine(x+8, yy - 10, x+8, yy+10);
+		ofDrawLine(x + 8, yy - 10, x+8, yy+10);
 		ofDrawLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", w - w * widthPct + 6, h - 5);
 		ofSetColor(0,0,0);
 		float y1 = ofMap(oldestLineOnScreen, 0, logLines.size(), 0, h);
 		float y2 = ofMap(newestLineOnScreen, 0, logLines.size(), 0, h);
 		ofSetColor(255,64);
-		ofDrawRectangle(xx + 5, y1, 10, y2 - y1);
+		ofDrawRectangle(x + 5, y1, 10, y2 - y1);
 	}
 	ofPopStyle();
 }

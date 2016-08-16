@@ -116,5 +116,5 @@ protected:
 	float fontSize;
 	#endif
 	float lineH;
-	size_t maxModuleLen = 0;
+	size_t maxModuleLen = 8; //len of the longest OF log module
 };
