@@ -15,7 +15,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	lastW = ofGetWidth();
 	lastH = ofGetHeight();
 
-	widthPct = 0.5f;
+	widthPct = 0.85f;
 	draggingWidth = scrolling = false;
 
 	//init some default colors for the log lines
@@ -30,7 +30,6 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	useColors = true;
 	scrollV = 0;
 	lineH = 15;
-	inertia = 0;
 	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
 	#endif
@@ -56,32 +55,22 @@ void ofxSuperLogDisplay::setMaxNumLogLines(int maxNumLogLines) {
 	MAX_NUM_LOG_LINES = maxNumLogLines;
 }
 
-void draw(ofEventArgs &e);
-
-void mousePressed(ofMouseEventArgs &e);
-void mouseMoved(ofMouseEventArgs &e);
-void mouseDragged(ofMouseEventArgs &e);
-void mouseReleased(ofMouseEventArgs &e);
-
-
 void ofxSuperLogDisplay::setEnabled(bool enabled) {
 	if(enabled==this->enabled) return;
 	this->enabled = enabled;
 	if(enabled) {
 		ofAddListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed);
-		ofAddListener(ofEvents().mouseMoved, this, &ofxSuperLogDisplay::mouseMoved);
 		ofAddListener(ofEvents().mouseDragged, this, &ofxSuperLogDisplay::mouseDragged);
 		ofAddListener(ofEvents().mouseReleased, this, &ofxSuperLogDisplay::mouseReleased);
 		if(autoDraw){
-			ofAddListener(ofEvents().draw, this, &ofxSuperLogDisplay::draw);
+			ofAddListener(ofEvents().draw, this, &ofxSuperLogDisplay::draw, OF_EVENT_ORDER_AFTER_APP + 10);
 		}
 	} else {
 		ofRemoveListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed);
-		ofRemoveListener(ofEvents().mouseMoved, this, &ofxSuperLogDisplay::mouseMoved);
 		ofRemoveListener(ofEvents().mouseDragged, this, &ofxSuperLogDisplay::mouseDragged);
 		ofRemoveListener(ofEvents().mouseReleased, this, &ofxSuperLogDisplay::mouseReleased);
 		if(autoDraw){
-			ofRemoveListener(ofEvents().draw, this, &ofxSuperLogDisplay::draw);
+			ofRemoveListener(ofEvents().draw, this, &ofxSuperLogDisplay::draw, OF_EVENT_ORDER_AFTER_APP + 10);
 		}
 	}
 }
@@ -291,11 +280,8 @@ void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
 		inertia = 0;
 		dragSpeed = 0;
 	}
-
 }
 
-void ofxSuperLogDisplay::mouseMoved(ofMouseEventArgs &e) {
-}
 
 void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
 	int width;

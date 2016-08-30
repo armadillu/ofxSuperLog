@@ -59,7 +59,6 @@ public:
 	void draw(float w, float h); //for manual drawing
 	
 	void mousePressed(ofMouseEventArgs &e);
-	void mouseMoved(ofMouseEventArgs &e);
 	void mouseDragged(ofMouseEventArgs &e);
 	void mouseReleased(ofMouseEventArgs &e);
 	
@@ -97,13 +96,13 @@ protected:
 	bool draggingWidth;
 
 	//scroll v
-	bool scrolling;
+	bool scrolling = false;
 	float scrollV;
-	float prevY, prevY2;
+	float prevY = 0, prevY2 = 0;
 	int oldestLineOnScreen;
 	int newestLineOnScreen;
-	float inertia;
-	float dragSpeed;
+	float inertia = 0;
+	float dragSpeed = 0;
 
 	ofMutex mutex;
 
