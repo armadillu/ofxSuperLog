@@ -156,7 +156,7 @@ void ofxSuperLogDisplay::draw(float w, float h) {
 			}
 
 			scrollV += inertia;
-			inertia *= 0.94;
+			inertia *= 0.97;
 		}
 
 		int x = w * (1. - widthPct);
