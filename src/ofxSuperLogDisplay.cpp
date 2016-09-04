@@ -129,7 +129,14 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 	lastW = screenW;
 	lastH = screenH;
-	if(logLines.size() == 0) return;
+
+	deque<LogLine> linesCopy;
+
+	mutex.lock();
+	linesCopy = logLines;
+	mutex.unlock();
+
+	if(linesCopy.size() == 0) return;
 
 	ofPushStyle();
 	ofEnableAlphaBlending();
@@ -145,7 +152,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		dragSpeed *= 0.6;
 
 		//clamp scrolling to lines we own
-		float maxY = lineH * logLines.size() - screenH;
+		float maxY = lineH * linesCopy.size() - screenH;
 		if(!scrolling){
 			float filter = 0.85f;
 			if(scrollV < -maxY){
@@ -172,20 +179,12 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		if(font) font->beginBatch();
 		#endif
 
-		deque<LogLine> linesCopy;
-
-		mutex.lock();
-		linesCopy = logLines;
-		mutex.unlock();
-
 		float yy;
 		bool drawn = false;
 		int postModuleX = maxModuleLen * charW; //
 		const string separator = " | ";
 
-		int nDrawnlines = 0;
-
-		for(int i = logLines.size() - 1; i >= 0; i--) {
+		for(int i = linesCopy.size() - 1; i >= 0; i--) {
 			#ifdef USE_OFX_FONTSTASH
 			if(font){
 				yy = screenH - pos * lineH - scrollV;
@@ -193,19 +192,18 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 					newestLineOnScreen = i;
 					break;
 				}
-				if(yy < screenH){
+				if(yy < screenH + 20){
 					if(!drawn){
 						oldestLineOnScreen = i;
 						drawn = true;
 					}
-					nDrawnlines++;
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
-						float off = charW * (maxModuleLen - linesCopy[i].module.size());
+						int off = charW * (maxModuleLen - linesCopy[i].module.size());
 						font->drawBatch(linesCopy[i].module, fontSize, x + off + 22, yy - 5);
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
-					font->drawBatch(separator + linesCopy[i].line, fontSize, x + 22 + postModuleX, yy - 5);
+					font->drawBatch(separator + linesCopy[i].line, fontSize, x + 16 + postModuleX, yy - 5);
 				}
 			}else
 			#endif
@@ -215,14 +213,14 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 					newestLineOnScreen = i;
 					break;
 				}
-				if(yy < screenH ){
+				if(yy < screenH + 20 ){
 					if(!drawn){
 						oldestLineOnScreen = i;
 						drawn = true;
 					}
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
-						float off = charW * (maxModuleLen - linesCopy[i].module.size());
+						int off = charW * (maxModuleLen - linesCopy[i].module.size());
 						ofDrawBitmapString(linesCopy[i].module, x + off + 20, yy );
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
@@ -244,8 +242,8 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		ofDrawLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", screenW - screenW * widthPct + 6, screenH - 5);
 		ofSetColor(0,0,0);
-		float y1 = ofMap(oldestLineOnScreen, 0, logLines.size(), 0, screenH);
-		float y2 = ofMap(newestLineOnScreen, 0, logLines.size(), 0, screenH);
+		float y1 = ofMap(oldestLineOnScreen, 0, linesCopy.size(), 0, screenH);
+		float y2 = ofMap(newestLineOnScreen, 0, linesCopy.size(), 0, screenH);
 		ofSetColor(255,64);
 		ofDrawRectangle(x + 5, y1, 10, y2 - y1);
 	}
