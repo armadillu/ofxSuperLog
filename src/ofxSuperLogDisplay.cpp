@@ -254,7 +254,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 const ofColor& ofxSuperLogDisplay::getColorForModule(const string & modName){
 	auto search = moduleColors.find(modName);
 	if(search == moduleColors.end()){
-		ofColor c; c.setHsb(( 30 + moduleColors.size() * 36)%255, 200, 255);
+		ofColor c; c.setHsb(( 30 + moduleColors.size() * 36)%255, 255, 255);
 		moduleColors[modName] = c;
 		return moduleColors[modName];
 	}
