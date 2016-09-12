@@ -59,7 +59,6 @@ public:
 	void draw(float w, float h); //for manual drawing
 	
 	void mousePressed(ofMouseEventArgs &e);
-	void mouseMoved(ofMouseEventArgs &e);
 	void mouseDragged(ofMouseEventArgs &e);
 	void mouseReleased(ofMouseEventArgs &e);
 	
@@ -76,8 +75,17 @@ protected:
 	struct LogLine{
 		string line;
 		string module;
+		string moduleClean;
 		ofLogLevel level;
-		LogLine(string modName, string lin, ofLogLevel lev){ line = lin; module = modName, level = lev; }
+		LogLine(const string & modName, const string & lin, ofLogLevel lev){
+			line = lin; module = modName, level = lev;
+			int c = 0;
+			for(auto it : modName){
+				if(it != ' ') break;
+				c++;
+			}
+			moduleClean = modName.substr(c, modName.size() - c);
+		}
 	};
 
 	bool enabled;
@@ -87,7 +95,7 @@ protected:
 	float lastW; //manual drawing
 	float lastH;
 
-	ofColor& getColorForModule(const string& modName);
+	const ofColor& getColorForModule(const string & modName);
 
 	int MAX_NUM_LOG_LINES;
 	bool minimized;
@@ -97,24 +105,25 @@ protected:
 	bool draggingWidth;
 
 	//scroll v
-	bool scrolling;
+	bool scrolling = false;
 	float scrollV;
-	float prevY, prevY2;
+	float prevY = 0, prevY2 = 0;
 	int oldestLineOnScreen;
 	int newestLineOnScreen;
-	float inertia;
-	float dragSpeed;
+	float inertia = 0;
+	float dragSpeed = 0;
 
 	ofMutex mutex;
 
 	bool useColors;
 	ofColor logColors[6]; //6 being the # of ofLogLevels. This is not very future proof - TODO!
-	map<string, ofColor> moduleColors;
+	unordered_map<string, ofColor> moduleColors;
 
 	#ifdef USE_OFX_FONTSTASH
 	ofxFontStash * font;
 	float fontSize;
 	#endif
 	float lineH;
+	float charW = 8; //bitmapfont w
 	size_t maxModuleLen = 8; //len of the longest OF log module
 };
