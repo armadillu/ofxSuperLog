@@ -5,6 +5,9 @@
  */
 
 #include "ofxSuperLog.h"
+#ifdef TARGET_WIN32
+#include <VersionHelpers.h>
+#endif
 
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
@@ -21,13 +24,28 @@ ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScree
 
 ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory) {
 
+#ifdef TARGET_WIN32
+	colorTerm = IsWindowsVersionOrGreater(10,0,0);
+	if (colorTerm) {
+		HANDLE hStdout;
+		DWORD handleMode;
+		hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+		#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+		#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+		#endif
+		handleMode = ENABLE_VIRTUAL_TERMINAL_PROCESSING | ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT;
+		SetConsoleMode(hStdout, handleMode);
+	}
+#else
+
 	if(const char* env_p = std::getenv("TERM")){ //see if term supports color!
 		ofLogNotice("ofxSuperLog") << "Your $TERM is: '" << env_p << "'";
 		if(ofIsStringInString(string(env_p), "xterm")){
 			colorTerm = true;
-			ofLogNotice("ofxSuperLog") << "Enabling colored console output";
 		}
 	}
+#endif
+	if(colorTerm)ofLogNotice("ofxSuperLog") << "Enabling colored console output";
 
 	this->loggingToFile = logDirectory!="";
 	this->loggingToScreen = drawToScreen;
