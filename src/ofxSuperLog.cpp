@@ -21,6 +21,9 @@ ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScree
 
 ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory) {
 
+#ifdef TARGET_WIN32
+	colorTerm = false; //todo!
+#else
 	if(const char* env_p = std::getenv("TERM")){ //see if term supports color!
 		ofLogNotice("ofxSuperLog") << "Your $TERM is: '" << env_p << "'";
 		if(ofIsStringInString(string(env_p), "xterm")){
@@ -28,6 +31,7 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 			ofLogNotice("ofxSuperLog") << "Enabling colored console output";
 		}
 	}
+#endif
 
 	this->loggingToFile = logDirectory!="";
 	this->loggingToScreen = drawToScreen;
