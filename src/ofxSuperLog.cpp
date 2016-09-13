@@ -26,7 +26,7 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 
 	#ifdef TARGET_WIN32
 
-	colorTerm = true;  IsWindowsVersionOrGreater(10, 0, 0);
+	colorTerm = true;  //IsWindowsVersionOrGreater(10, 0, 0);
 	if (colorTerm) {
 		HANDLE hStdout;
 		DWORD handleMode;
