@@ -25,7 +25,6 @@ ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScree
 ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory) {
 
 	#ifdef TARGET_WIN32
-
 	colorTerm = true;  //IsWindowsVersionOrGreater(10, 0, 0);
 	if (colorTerm) {
 		HANDLE hStdout;
@@ -46,7 +45,7 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 	}
 	#endif
 
-	if(colorTerm)ofLogNotice("ofxSuperLog") << "Enabling colored console output";
+	if(colorTerm) ofLogNotice("ofxSuperLog") << "Enabling colored console output";
 
 	this->loggingToFile = logDirectory!="";
 	this->loggingToScreen = drawToScreen;
@@ -57,8 +56,12 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 			ofDirectory dir(logDirectory);
 			dir.create();
 		}
-
-		fileLogger.setFile(logDirectory + "/" + ofGetTimestampString("%Y-%m-%d | %H-%M-%S | %A") + ".log", true);
+		#ifdef TARGET_WIN32
+		string fileName = ofGetTimestampString("%Y-%m-%d + %H-%M-%S + %A");
+		#else
+		string fileName = ofGetTimestampString("%Y-%m-%d | %H-%M-%S | %A");
+		#endif
+		fileLogger.setFile(logDirectory + "/" + fileName + ".log", true);
 	}
 	if(drawToScreen) {
 		displayLogger.setEnabled(true);
@@ -150,10 +153,10 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 			string colorMsg;
 			switch (level) {
 				case OF_LOG_VERBOSE: colorMsg = "\033[0;37m"; break; //gray
-				case OF_LOG_NOTICE: colorMsg = "\033[0;34m"; break; //blue
-				case OF_LOG_WARNING: colorMsg = "\033[0;33m"; break; //yellow
-				case OF_LOG_ERROR: colorMsg = "\033[0;31m"; break; //red
-				case OF_LOG_FATAL_ERROR: colorMsg = "\033[0;35m"; break; //purple
+				case OF_LOG_NOTICE: colorMsg = "\033[0;32m"; break; //green
+				case OF_LOG_WARNING: colorMsg = "\033[30;43m"; break; //yellow
+				case OF_LOG_ERROR: colorMsg = "\033[30;41m"; break; //red bg
+				case OF_LOG_FATAL_ERROR: colorMsg = "\033[30;45m"; break; //purple
 				default : break;
 			}
 			colorMsg += message + "\033[0;0m";
