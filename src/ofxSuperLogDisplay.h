@@ -70,6 +70,8 @@ public:
 	
 protected:
 
+	void onKeyPressed(ofKeyEventArgs &);
+	
 	void draw(ofEventArgs &e);
 
 	struct LogLine{

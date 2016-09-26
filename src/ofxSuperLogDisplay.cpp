@@ -34,10 +34,23 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	font = NULL;
 	#endif
 	logLines.push_back(LogLine("", "################## ofxSuperLog Start ##################", OF_LOG_WARNING));
+	
+	ofAddListener(ofEvents().keyPressed, this, &ofxSuperLogDisplay::onKeyPressed);
 }
 
-ofxSuperLogDisplay::~ofxSuperLogDisplay() {
+ofxSuperLogDisplay::~ofxSuperLogDisplay() {}
+
+
+void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
+	#ifdef USE_OFX_FONTSTASH
+	if(k.key == '+' || k.key == '-'){
+		if(!isMinimized() && font){
+			setFont(font, fontSize + float(k.key == '+' ? 1.0 : -1.0));
+		}
+	}
+	#endif
 }
+
 
 #ifdef USE_OFX_FONTSTASH
 void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
