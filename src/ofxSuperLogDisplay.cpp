@@ -28,7 +28,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	logColors[OF_LOG_SILENT] = ofColor(90) * gain;
 
 	useColors = true;
-	scrollV = 0;
+	scrollY = 0;
 	lineH = 15;
 	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
@@ -49,6 +49,22 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 		}
 	}
 	#endif
+	if (k.key == OF_KEY_DOWN || k.key == OF_KEY_UP) {
+		targetScrollY += k.key == OF_KEY_DOWN ? 2 * lineH : -2 * lineH;
+		targetScrollY = ofClamp(targetScrollY, -maxScrollY, 0);
+	}
+	if (k.key == OF_KEY_END) {
+		targetScrollY = 0;
+	}
+	if (k.key == OF_KEY_HOME) {
+		targetScrollY = -maxScrollY;
+	}
+	if (k.key == OF_KEY_PAGE_DOWN) {
+		targetScrollY = ofClamp(targetScrollY + 100 * lineH, -maxScrollY, 0);
+	}
+	if (k.key == OF_KEY_PAGE_UP) {
+		targetScrollY = ofClamp(targetScrollY - 100 * lineH, -maxScrollY, 0);
+	}
 }
 
 
@@ -165,21 +181,23 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		dragSpeed *= 0.6;
 
 		//clamp scrolling to lines we own
-		float maxY = lineH * linesCopy.size() - screenH;
+		maxScrollY = lineH * linesCopy.size() - screenH;
 		if(!scrolling){
 			float filter = 0.85f;
-			if(scrollV < -maxY){
-				scrollV = filter * scrollV + -maxY * (1.0f - filter);
+			if(targetScrollY < -maxScrollY){
+				targetScrollY = filter * targetScrollY + -maxScrollY * (1.0f - filter);
 				inertia *= 0.6;
 			}
-			if(scrollV > 0){
-				scrollV = scrollV * filter;
+			if(targetScrollY > 0){
+				targetScrollY = targetScrollY * filter;
 				inertia *= 0.6;
 			}
 
-			scrollV += inertia;
+			targetScrollY += inertia;
 			inertia *= 0.97;
 		}
+
+		scrollY = ofLerp(scrollY, targetScrollY, 0.33);
 
 		int x = screenW * (1. - widthPct);
 
@@ -200,7 +218,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		for(int i = linesCopy.size() - 1; i >= 0; i--) {
 			#ifdef USE_OFX_FONTSTASH
 			if(font){
-				yy = screenH - pos * lineH - scrollV;
+				yy = screenH - pos * lineH - scrollY;
 				if(yy < 0){
 					newestLineOnScreen = i;
 					break;
@@ -221,7 +239,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 			}else
 			#endif
 			{
-				yy = screenH - pos * lineH - 5 - scrollV;
+				yy = screenH - pos * lineH - 5 - scrollY;
 				if(yy < 0){
 					newestLineOnScreen = i;
 					break;
@@ -301,7 +319,7 @@ void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
 	if(scrolling && !draggingWidth){
 		dragSpeed = (e.y - prevY) * lineH * 0.25;
 		inertia = -dragSpeed;
-		scrollV -= dragSpeed;
+		targetScrollY -= dragSpeed;
 		prevY = e.y;
 	}
 }
@@ -330,7 +348,7 @@ void ofxSuperLogDisplay::setMinimized(bool minimized) {
 	this->minimized  = minimized;
 	inertia = 0;
 	scrolling = false;
-	scrollV = 0;
+	scrollY = targetScrollY = 0;
 }
 
 bool ofxSuperLogDisplay::isMinimized() {

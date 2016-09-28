@@ -108,7 +108,9 @@ protected:
 
 	//scroll v
 	bool scrolling = false;
-	float scrollV;
+	float scrollY;
+	float targetScrollY; //the above will lerp to this
+	float maxScrollY;
 	float prevY = 0, prevY2 = 0;
 	int oldestLineOnScreen;
 	int newestLineOnScreen;
