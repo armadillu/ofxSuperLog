@@ -13,7 +13,7 @@ ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
 
 ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScreen, string logDirectory) {
-	if(logPtr==NULL) {
+	if(logPtr == NULL) {
 		logPtr = new ofxSuperLog(writeToConsole, drawToScreen, logDirectory);
 		logger = ofPtr<ofxSuperLog>(logPtr);
 
@@ -69,6 +69,7 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 }
 
 ofxSuperLog::~ofxSuperLog() {
+	 ofLogWarning("ofxSuperLog") << "~ofxSuperLog()"; 
 }
 
 
