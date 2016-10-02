@@ -146,7 +146,10 @@ string ofxSuperLog::filterModuleName(const string & module){
 
 void ofxSuperLog::log(ofLogLevel level, const string & module, const string & message) {
 
+	
 	string filteredModName = filterModuleName(module);
+	if(useMutex) syncLogMutex.lock();
+
 	if(loggingToFile) fileLogger.log(level, filteredModName, message);
 	if(loggingToScreen) displayLogger.log(level, filteredModName, message);
 	if(loggingToConsole){
@@ -166,6 +169,7 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 			consoleLogger.log(level, filteredModName, message);
 		}
 	}
+	if(useMutex) syncLogMutex.unlock();
 }
 
 void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, ...) {
@@ -176,13 +180,19 @@ void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* fo
 	va_end(args);
 }
 
+void ofxSuperLog::setSyncronizedLogging(bool useMutex){
+	this->useMutex = useMutex;
+}
+
 char aux64_2[6000];//hopefully that's enough!
 char aux64[6000];
 
 void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, va_list args) {
 
+	if(useMutex) syncLogMutex.lock();
+
 	//we can only use args once! bc we have different outputs,
-	//we pre-process args into a string, then we sedn all string to all channels
+	//we pre-process args into a string, then we send all string to all channels
 	vsprintf(aux64_2, format, args);
 	if(module != ""){
 		sprintf(aux64, "[%s] %s %s", ofGetLogLevelName(logLevel, true).c_str(), module.c_str(), aux64_2);
@@ -195,6 +205,7 @@ void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* fo
 	if(loggingToFile) fileLogger.log(logLevel, filteredModName, aux64);
 	if(loggingToScreen) displayLogger.log(logLevel, filteredModName, aux64);
 	if(loggingToConsole) consoleLogger.log(logLevel, filteredModName, aux64);
+	if(useMutex) syncLogMutex.unlock();
 }
 
 void ofxSuperLog::draw(float w, float h){

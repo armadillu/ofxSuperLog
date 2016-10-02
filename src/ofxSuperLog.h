@@ -177,6 +177,10 @@ public:
 
 	void setMaximized(bool maximized);
 
+	//enabling this will lock/unlock a mutex for every ofLog() command to avoid mangled lines
+	//probably big performance hit though!
+	void setSyncronizedLogging(bool useMutex);
+
 	#ifdef USE_OFX_FONTSTASH
 	void setFont(ofxFontStash * font, float fontSiz);
 	#endif
@@ -224,4 +228,7 @@ private:
 	string filterModuleName(const string &);
 	size_t maxModuleLen = 8; //len of the longest OF log module
 	bool colorTerm = false;
+	
+	bool useMutex = false;
+	ofMutex syncLogMutex;
 };
