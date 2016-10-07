@@ -21,11 +21,35 @@ ofPtr<ofxSuperLog> &ofxSuperLog::getLogger(bool writeToConsole, bool drawToScree
 	return logger;
 }
 
+#ifdef TARGET_WIN32
+//http://stackoverflow.com/questions/36543301/detecting-windows-10-version
+typedef LONG NTSTATUS, *PNTSTATUS;
+#define STATUS_SUCCESS (0x00000000)
+typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+
+RTL_OSVERSIONINFOW GetRealOSVersion() {
+	HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
+	if (hMod) {
+		RtlGetVersionPtr fxPtr = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+		if (fxPtr != nullptr) {
+			RTL_OSVERSIONINFOW rovi = { 0 };
+			rovi.dwOSVersionInfoSize = sizeof(rovi);
+			if (STATUS_SUCCESS == fxPtr(&rovi)) {
+				return rovi;
+			}
+		}
+	}
+	RTL_OSVERSIONINFOW rovi = { 0 };
+	return rovi;
+}
+#endif
 
 ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory) {
 
 	#ifdef TARGET_WIN32
-	colorTerm = IsWindowsVersionOrGreater(10, 0, 0);
+	
+	colorTerm = GetRealOSVersion().dwMajorVersion >= 10;
+	//colorTerm = IsWindows10OrGreater();
 	if (colorTerm) {
 		HANDLE hStdout;
 		DWORD handleMode;
