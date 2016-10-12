@@ -288,7 +288,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		ofRotateDeg(-90, 0, 0, 1);
 		string helpMsg = "Press 't' to show log times";
 		#ifdef USE_OFX_FONTSTASH
-		if(false && font){
+		if(font){
 			ofSetColor(0);
 			font->draw(helpMsg, fontSize, 0, 15);
 			ofSetColor(255);
