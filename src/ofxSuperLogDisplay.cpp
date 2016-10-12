@@ -65,6 +65,9 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 	if (k.key == OF_KEY_PAGE_UP) {
 		targetScrollY = ofClamp(targetScrollY - 100 * lineH, -maxScrollY, 0);
 	}
+	if (k.key == 't') {
+		displayTimes ^= true;
+	}
 }
 
 
@@ -212,10 +215,11 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 		float yy;
 		bool drawn = false;
-		int postModuleX = maxModuleLen * charW; //
-		const string separator = " | ";
+		float postModuleX = int((maxModuleLen + 2.3) * charW); //
+		const string separator = ":";
 
 		for(int i = linesCopy.size() - 1; i >= 0; i--) {
+			string time = string(displayTimes ? (linesCopy[i].timeOfLog + " - ") : "");
 			#ifdef USE_OFX_FONTSTASH
 			if(font){
 				yy = screenH - pos * lineH - scrollY;
@@ -231,10 +235,10 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
 						int off = charW * (maxModuleLen - linesCopy[i].module.size());
-						font->drawBatch(linesCopy[i].module, fontSize, x + off + 22, yy - 5);
+						font->draw(linesCopy[i].module + separator, fontSize, x + off + 22, yy - 5);
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
-					font->drawBatch(separator + linesCopy[i].line, fontSize, x + 16 + postModuleX, yy - 5);
+					font->drawBatch(time + linesCopy[i].line, fontSize, x + 16 + postModuleX, yy - 5);
 				}
 			}else
 			#endif
@@ -252,10 +256,10 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
 						int off = charW * (maxModuleLen - linesCopy[i].module.size());
-						ofDrawBitmapString(linesCopy[i].module, x + off + 20, yy );
+						ofDrawBitmapString(linesCopy[i].module + separator, x + off + 20, yy );
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
-					ofDrawBitmapString(separator + linesCopy[i].line, x + 20 + postModuleX, yy);
+					ofDrawBitmapString(separator + time + linesCopy[i].line, x + 20 + postModuleX, yy);
 				}
 			}
 			pos++;
@@ -266,17 +270,41 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		#endif
 
 		ofSetColor(44, 255);
-		ofDrawRectangle(x, 0, 20, screenH);
+		int sepBarW = 20;
+		float pad = 4.0;
+		ofDrawRectangle(x, 0, sepBarW, screenH);
 		ofSetColor(255);
 		yy = ofGetHeight()/2;
 		ofDrawLine(x + 8, yy - 10, x+8, yy+10);
 		ofDrawLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", screenW - screenW * widthPct + 6, screenH - 5);
 		ofSetColor(0,0,0);
-		float y1 = ofMap(oldestLineOnScreen, 0, linesCopy.size(), 0, screenH);
-		float y2 = ofMap(newestLineOnScreen, 0, linesCopy.size(), 0, screenH);
+		float y1 = ofMap(oldestLineOnScreen, 1, linesCopy.size(), pad, screenH, true);
+		float y2 = ofMap(newestLineOnScreen, 1, linesCopy.size(), pad, screenH, true);
 		ofSetColor(255,64);
-		ofDrawRectangle(x + 5, y1, 10, y2 - y1);
+		ofDrawRectangle(x + pad, y1, sepBarW - 2 * pad, y2 - y1);
+		ofPushMatrix();
+		ofTranslate(x, screenH - 18);
+		ofRotateDeg(-90, 0, 0, 1);
+		string helpMsg = "Press 't' to show log times";
+		#ifdef USE_OFX_FONTSTASH
+		if(false && font){
+			ofSetColor(0);
+			font->draw(helpMsg, fontSize, 0, 15);
+			ofSetColor(255);
+			font->draw(helpMsg, fontSize, 1, 14);
+		}else
+		#endif
+		{
+			ofDrawBitmapMode m = ofGetStyle().drawBitmapMode;
+			ofSetDrawBitmapMode(OF_BITMAPMODE_MODEL);
+			ofSetColor(0);
+			ofDrawBitmapString(helpMsg, 0, 15);
+			ofSetColor(255);
+			ofDrawBitmapString(helpMsg, 1, 14);
+			ofSetDrawBitmapMode(m);
+		}
+		ofPopMatrix();
 	}
 	ofPopStyle();
 }

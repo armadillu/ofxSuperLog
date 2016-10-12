@@ -78,9 +78,11 @@ protected:
 		string line;
 		string module;
 		string moduleClean;
+		string timeOfLog;
 		ofLogLevel level;
 		LogLine(const string & modName, const string & lin, ofLogLevel lev){
 			line = lin; module = modName, level = lev;
+			timeOfLog = ofGetTimestampString("%Y/%m/%d %H:%M:%S");
 			int c = 0;
 			for(auto it : modName){
 				if(it != ' ') break;
@@ -130,4 +132,6 @@ protected:
 	float lineH;
 	float charW = 8; //bitmapfont w
 	size_t maxModuleLen = 8; //len of the longest OF log module
+	
+	bool displayTimes = false;
 };
