@@ -45,7 +45,7 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 	#ifdef USE_OFX_FONTSTASH
 	if(k.key == '+' || k.key == '-'){
 		if(!isMinimized() && font){
-			setFont(font, fontSize + float(k.key == '+' ? 1.0 : -1.0));
+			setFont(font, fontSize + float(k.key == '+' ? 1.0f : -1.0f));
 		}
 	}
 	#endif
@@ -75,13 +75,13 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
 	font = f;
 	fontSize = fontSize_;
-	ofRectangle r = font->getBBox("M", fontSize, 0, 0);
+	ofRectangle r = font->getBBox("MMMMMMMMMM", fontSize, 0, 0);
 	lineH = r.height * 1.4; //find line height with "M" char
 	if(lineH <= 0){
 		ofLogError("ofxSuperLogDisplay") << "FontStash lineH reported 0!";
 		lineH = 20;
 	}
-	charW = r.width;
+	charW = r.width / 10.0;
 }
 #endif
 
@@ -215,7 +215,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 		float yy;
 		bool drawn = false;
-		float postModuleX = int((maxModuleLen + 2.3) * charW); //
+		float postModuleX = int((maxModuleLen + 2.7) * charW); //
 		const string separator = ":";
 
 		for(int i = linesCopy.size() - 1; i >= 0; i--) {
@@ -235,7 +235,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
 						int off = charW * (maxModuleLen - linesCopy[i].module.size());
-						font->draw(linesCopy[i].module + separator, fontSize, x + off + 22, yy - 5);
+						font->drawBatch(linesCopy[i].module + separator, fontSize, x + off + 22, yy - 5);
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
 					font->drawBatch(time + linesCopy[i].line, fontSize, x + 16 + postModuleX, yy - 5);
