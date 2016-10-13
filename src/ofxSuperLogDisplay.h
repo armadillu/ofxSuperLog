@@ -45,6 +45,7 @@ public:
 	bool isMinimized();
 
 	void setUseColors(bool useC){useColors = useC;};
+	void setDisplayLogTimes(bool display) { displayTimes = display; }
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ logColors[l] = c;}
 
 	///this defines how much space the on-screen logging will take when the log is visible
