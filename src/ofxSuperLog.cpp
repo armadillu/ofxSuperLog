@@ -85,7 +85,9 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 		#else
 		string fileName = ofGetTimestampString("%Y-%m-%d | %H-%M-%S | %A");
 		#endif
-		fileLogger.setFile(logDirectory + "/" + fileName + ".log", true);
+		
+		currentLogFile = logDirectory + "/" + fileName + ".log";
+		fileLogger.setFile(currentLogFile, true);
 	}
 	if(drawToScreen) {
 		displayLogger.setEnabled(true);

@@ -203,12 +203,13 @@ public:
 
 	virtual ~ofxSuperLog();
 
-
 	void draw(float w, float h);
 
 	static void clearOldLogs(string path, int numDays);
     
     ofxSuperLogDisplay& getDisplayLogger(){return displayLogger;}
+	
+	string getCurrentLogFile(){return currentLogFile;}
 
 private:
 
@@ -225,6 +226,8 @@ private:
 	ofFileLoggerChannel fileLogger;
 	ofxSuperLogDisplay displayLogger;
 
+	string currentLogFile;
+	
 	string filterModuleName(const string &);
 	size_t maxModuleLen = 8; //len of the longest OF log module
 	bool colorTerm = false;
