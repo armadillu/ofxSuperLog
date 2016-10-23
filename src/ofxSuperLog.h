@@ -209,6 +209,8 @@ public:
     
     ofxSuperLogDisplay& getDisplayLogger(){return displayLogger;}
 	
+	void setFileLogShowsTimestamps(bool t){fileLogShowsTimestamps = t;}
+	
 	string getCurrentLogFile(){return currentLogFile;}
 
 private:
@@ -226,6 +228,8 @@ private:
 	ofFileLoggerChannel fileLogger;
 	ofxSuperLogDisplay displayLogger;
 
+	bool fileLogShowsTimestamps = true;
+	
 	string currentLogFile;
 	
 	string filterModuleName(const string &);

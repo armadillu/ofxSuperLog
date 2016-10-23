@@ -174,9 +174,20 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 
 	
 	string filteredModName = filterModuleName(module);
-	if(useMutex) syncLogMutex.lock();
+	string timeOfLog;
+	if(fileLogShowsTimestamps){
+		timeOfLog = ofGetTimestampString("%Y/%m/%d %H:%M:%S");
+	}
 
-	if(loggingToFile) fileLogger.log(level, filteredModName, message);
+	if(useMutex) syncLogMutex.lock();
+	
+	if(loggingToFile){
+		if(fileLogShowsTimestamps){
+			fileLogger.log(level, filteredModName, timeOfLog + " - " + message);
+		}else{
+			fileLogger.log(level, filteredModName, message);
+		}
+	}
 	if(loggingToScreen) displayLogger.log(level, filteredModName, message);
 	if(loggingToConsole){
 		if(colorTerm){ //colorize term output
