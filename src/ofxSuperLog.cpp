@@ -133,29 +133,6 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 	}
 }
 
-void ofxSuperLog::archiveOldLogs(int numUncompressedToKeep, int numCompressedToKeep) {
-    if(numUncompressedToKeep==-1) return;
-    if(logDirectory=="") {
-        ofLogError() << "Must specify a log directory - can't be \"\"";
-        return;
-    }
-    ofDirectory dir;
-    dir.allowExt("log");
-    dir.listDir(logDirectory);
-    dir.sort();
-   // while(numUncompressedToKeep<dir.size())
-   ofLogError() << "This isn't implemented yet!";
-
-   /*
-   // MUST use binary!
-std::ofstream out("test.zip", std::ios::binary);
-Compress c(out, true);
-Poco::Path aFile("c:\\data\\hello.txt");
-c.addFile(theFile, "hello.txt");
-c.close(); // MUST be done to finalize the Zip file
-
-*/
-}
 
 #ifdef USE_OFX_FONTSTASH
 void ofxSuperLog::setFont(ofxFontStash * font, float fontSiz){

@@ -46,111 +46,9 @@
 #include "ofxFontStash.h"
 #endif
 
+#define SUPERLOG_TYPE_NAME		ofxSuperLog::demangled_type_info_name(typeid(this))
+
 #pragma once
-
-#define LOG_TIMESTAMP				string(	"[" + \
-									ofToString(ofGetYear()) + 					\
-									"/" + ofToString(ofGetMonth(), 2, '0') + 			\
-									"/" + ofToString(ofGetDay(), 2, '0') + 			\
-									" " + ofToString(ofGetHours(), 2, '0') +			\
-									":" + ofToString(ofGetMinutes(), 2, '0') +			\
-									":" + ofToString(ofGetSeconds(), 2, '0') + "]" )			\
-
-//#define LOG_CONTEXTUAL_INFO		"[" << typeid(this).name() << "::" << __func__ << "() @ " << __LINE__ << " ]"
-
-#ifdef TARGET_OSX
-#define LOG_CONTEXTUAL_INFO				__func__ << "() @ " << LOG_TIMESTAMP
-#define LOG_CONTEXTUAL_INFO_STATIC		__func__ << "() @ " << LOG_TIMESTAMP
-#else
-#define LOG_CONTEXTUAL_INFO				string(demangled_type_info_name(typeid(this))) << " " << LOG_TIMESTAMP
-#define LOG_CONTEXTUAL_INFO_STATIC		__FUNCTION__ << "() @ "<< LOG_TIMESTAMP
-#endif
-
-
-#ifdef TARGET_OSX
-	#define WARN_EMOJI		"⚠️"
-	#define ERR_EMOJI		"‼️"
-	#define F_ERR_EMOJI		"💣"
-	#define NOTICE_EMOJI	"💬"
-#else
-	#define WARN_EMOJI		"#"
-	#define ERR_EMOJI		"#"
-	#define F_ERR_EMOJI		"#"
-	#define NOTICE_EMOJI	"#"
-#endif
-
-//normal
-#define LOG							ofLogNotice(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
-#define LOG_VERBOSE					ofLogVerbose(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " "
-#define LOG_NOTICE					ofLogNotice(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
-#define LOG_WARNING					ofLogWarning(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << WARN_EMOJI << " "
-#define LOG_ERROR					ofLogError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << ERR_EMOJI << " "
-#define LOG_FATAL_ERROR				ofLogFatalError(demangled_type_info_name(typeid(this))) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
-
-//for static methods
-#define LOG_STATIC					ofLog() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << NOTICE_EMOJI << " "
-#define LOG_STATIC_ERROR			ofLogError() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << ERR_EMOJI << " "
-#define LOG_STATIC_FATAL_ERROR		ofLogFatalError() << "[" << LOG_CONTEXTUAL_INFO_STATIC << "] " << F_ERR_EMOJI << " "
-
-//same as normal, but specifying a module
-//this way you can shut individual modules with ofSetLogLevel(moduleName, level);
-#define MLOG(module)				ofLogNotice(module) << LOG_CONTEXTUAL_INFO << " " << NOTICE_EMOJI << " "
-#define MLOG_VERBOSE(module)		ofLogVerbose(module) << LOG_CONTEXTUAL_INFO << " "
-#define MLOG_WARNING(module)		ofLogWarning(module) << LOG_CONTEXTUAL_INFO << " " << WARN_EMOJI << " "
-#define MLOG_ERROR(module)			ofLogError(module) << LOG_CONTEXTUAL_INFO << " " << ERR_EMOJI << " "
-#define MLOG_FATAL_ERROR(module)	ofLogFatalError(module) << LOG_CONTEXTUAL_INFO << " " << F_ERR_EMOJI << " "
-#define MLOG_STATIC(module)			ofLogNotice(module) << LOG_CONTEXTUAL_INFO_STATIC << " " << NOTICE_EMOJI << " "
-
-//short log - less info
-#define SLOG						ofLog() << LOG_TIMESTAMP << " " << NOTICE_EMOJI << " "
-#define SLOG_VERBOSE				ofLogVerbose() << LOG_TIMESTAMP << " "
-#define SLOG_NOTICE					ofLogNotice() << LOG_TIMESTAMP << " " << NOTICE_EMOJI << " "
-#define SLOG_WARNING				ofLogWarning() << LOG_TIMESTAMP << " " << WARN_EMOJI << " "
-#define SLOG_ERROR					ofLogError() << LOG_TIMESTAMP << " " << ERR_EMOJI << " "
-#define SLOG_FATAL_ERROR			ofLogFatalError() << LOG_TIMESTAMP << " " << F_ERR_EMOJI << " "
-
-inline std::string demangled_type_info_name(const std::type_info&ti){
-
-	static char demangleSpace[4096];
-	static ofMutex logMutex;
-
-	ofScopedLock lock(logMutex);
-
-	#ifdef TARGET_WIN32
-	static std::vector<std::string> keywords;
-	if ( 0 == keywords.size() ) {
-		keywords.push_back("class ");
-		keywords.push_back("struct ");
-		keywords.push_back("enum ");
-		keywords.push_back("union ");
-		keywords.push_back("__cdecl");
-	}
-	std::string r = ti.name();
-	for ( size_t i = 0; i < keywords.size(); i ++ ) {
-		while (r.find(keywords[i]) != std::string::npos) 
-			r = r.replace(r.find(keywords[i]), keywords[i].size(), "");
-		while (r.find(" *") != std::string::npos) 
-			r = r.replace(r.find(" *"), 2, "*");
-		while (r.find(" &") != std::string::npos) 
-			r = r.replace(r.find(" &"), 2, "&");
-	}
-	if(r.size() > 0){
-		r = r.substr(0, r.size() - 1);
-	}
-
-	return r;
-	#else
-	int status = 0;
-	size_t len = 4096;
-	char * ret = abi::__cxa_demangle(ti.name(),(char*)&demangleSpace, &len, &status);
-	string finalS = string(demangleSpace);
-	if(finalS.size() > 0){
-		finalS = finalS.substr(0, finalS.size() - 1);
-	}
-	return finalS;
-	#endif
-}
-
 
 class ofxSuperLog: public ofBaseLoggerChannel {
 
@@ -158,26 +56,15 @@ public:
 
 	static ofPtr<ofxSuperLog> &getLogger(bool writeToConsole = true, bool drawToScreen = true, string logDirectory = "");
 
-
-	// this compresses all the old logs
-	// - the first parameter, is how many of the most recent logs to keep as plain text,
-	// the second is how many after that you want compressed. If you set either value
-	// to -1 it means infinite.
-	// so if you set numUncompressedToKeep==-1 then all logs are kept forever and in plain text
-    // but if you call with default args (0, -1) then all logs are kept but in compressed format.
-    void archiveOldLogs(int numUncompressedToKeep = 0, int numCompressedToKeep = -1);
-
-	// in the display, this sets how many lines to remember.
-	// not that useful unless there is scrollback.
+	// this affects the display only,  sets how many lines the scroll will have.
 	void setMaxNumLogLines(int maxNumLogLines);
 
 	void setScreenLoggingEnabled(bool enabled);
-
 	bool isScreenLoggingEnabled();
 
 	void setMaximized(bool maximized);
 
-	//enabling this will lock/unlock a mutex for every ofLog() command to avoid mangled lines
+	//enabling this will lock/unlock a mutex for every ofLog() command to avoid mixed-up lines bc of de-synced logging
 	//probably big performance hit though!
 	void setSyncronizedLogging(bool useMutex);
 
@@ -212,6 +99,39 @@ public:
 	void setFileLogShowsTimestamps(bool t){fileLogShowsTimestamps = t;}
 	
 	string getCurrentLogFile(){return currentLogFile;}
+
+
+	static std::string demangled_type_info_name(const std::type_info&ti){
+
+		char demangleBuffer[512];
+
+		#ifdef TARGET_WIN32
+		static std::vector<std::string> keywords = {"class ", "struct ", "enum ", "union ", "__cdecl"};
+		std::string r = ti.name();
+		for ( size_t i = 0; i < keywords.size(); i ++ ) {
+			while (r.find(keywords[i]) != std::string::npos)
+				r = r.replace(r.find(keywords[i]), keywords[i].size(), "");
+			while (r.find(" *") != std::string::npos)
+				r = r.replace(r.find(" *"), 2, "*");
+			while (r.find(" &") != std::string::npos)
+				r = r.replace(r.find(" &"), 2, "&");
+		}
+		if(r.size() > 0){
+			r = r.substr(0, r.size() - 1);
+		}
+		return r;
+		#else
+		int status = 0;
+		size_t len = 4096;
+		abi::__cxa_demangle(ti.name(),(char*)&demangleBuffer, &len, &status);
+		//note theres no need to free the returned char* as we are providing our own buffer
+		string finalS = string(demangleBuffer);
+		if(finalS.size() > 0){
+			finalS = finalS.substr(0, finalS.size() - 1);
+		}
+		return finalS;
+		#endif
+	}
 
 private:
 
