@@ -68,6 +68,9 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 	if (k.key == 't') {
 		displayTimes ^= true;
 	}
+	if(k.key == 'c'){
+		clearLog();
+	}
 }
 
 
@@ -90,7 +93,9 @@ void ofxSuperLogDisplay::setMaxNumLogLines(int maxNumLogLines) {
 }
 
 void ofxSuperLogDisplay::setEnabled(bool enabled) {
+
 	if(enabled==this->enabled) return;
+	ofLogNotice("ofxSuperLogDisplay")	<< " enable log display: " << enabled;
 	this->enabled = enabled;
 	if(enabled) {
 		ofAddListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed);
@@ -111,6 +116,14 @@ void ofxSuperLogDisplay::setEnabled(bool enabled) {
 
 bool ofxSuperLogDisplay::isEnabled() {
 	return enabled;
+}
+
+
+void ofxSuperLogDisplay::clearLog(){
+	mutex.lock();
+	logLines.clear();
+	logLines.push_back(LogLine("", "################## ofxSuperLog Cleaned ##################", OF_LOG_WARNING));
+	mutex.unlock();
 }
 
 void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const string & message) {
@@ -286,7 +299,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		ofPushMatrix();
 		ofTranslate(x, screenH - 18);
 		ofRotateDeg(-90, 0, 0, 1);
-		string helpMsg = "Press 't' to show log times";
+		string helpMsg = "'t' to show log times  'c' to clear log.";
 		#ifdef USE_OFX_FONTSTASH
 		if(font){
 			ofSetColor(0);

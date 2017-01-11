@@ -44,6 +44,8 @@ public:
 	void setMinimized(bool minimized);
 	bool isMinimized();
 
+	void clearLog();
+
 	void setUseColors(bool useC){useColors = useC;};
 	void setDisplayLogTimes(bool display) { displayTimes = display; }
 	void setColorForLogLevel(ofLogLevel l, const ofColor &c){ logColors[l] = c;}
