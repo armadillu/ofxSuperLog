@@ -95,7 +95,7 @@ void ofxSuperLogDisplay::setMaxNumLogLines(int maxNumLogLines) {
 void ofxSuperLogDisplay::setEnabled(bool enabled) {
 
 	if(enabled==this->enabled) return;
-	ofLogNotice("ofxSuperLogDisplay")	<< " enable log display: " << enabled;
+	ofLogNotice("ofxSuperLogDisplay")	<< "enable log display: " << enabled;
 	this->enabled = enabled;
 	if(enabled) {
 		ofAddListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed);
