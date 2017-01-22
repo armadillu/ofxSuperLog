@@ -76,15 +76,19 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 
 #ifdef USE_OFX_FONTSTASH
 void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
-	font = f;
-	fontSize = fontSize_;
-	ofRectangle r = font->getBBox("MMMMMMMMMM", fontSize, 0, 0);
-	lineH = r.height * 1.4; //find line height with "M" char
-	if(lineH <= 0){
-		ofLogError("ofxSuperLogDisplay") << "FontStash lineH reported 0!";
-		lineH = 20;
+	if(!ofIsGLProgrammableRenderer()){
+		font = f;
+		fontSize = fontSize_;
+		ofRectangle r = font->getBBox("MMMMMMMMMM", fontSize, 0, 0);
+		lineH = r.height * 1.4; //find line height with "M" char
+		if(lineH <= 0){
+			ofLogError("ofxSuperLogDisplay") << "FontStash lineH reported 0!";
+			lineH = 20;
+		}
+		charW = r.width / 10.0;
+	}else{
+		ofLogError("ofxSuperLogDisplay") << "Can't use ofxFontStash with the Programmable Renderer!";
 	}
-	charW = r.width / 10.0;
 }
 #endif
 
