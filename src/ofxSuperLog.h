@@ -38,7 +38,7 @@
 
 #include "ofxSuperLogDisplay.h"
 
-#ifdef TARGET_OSX
+#if defined(TARGET_OSX) || defined(TARGET_LINUX)
 #include <cxxabi.h>
 #endif
 
