@@ -61,9 +61,9 @@ public:
 
 	void draw(float w, float h); //for manual drawing
 	
-	void mousePressed(ofMouseEventArgs &e);
-	void mouseDragged(ofMouseEventArgs &e);
-	void mouseReleased(ofMouseEventArgs &e);
+	bool mousePressed(ofMouseEventArgs &e);
+	bool mouseDragged(ofMouseEventArgs &e);
+	bool mouseReleased(ofMouseEventArgs &e);
 	
 
 	void log(ofLogLevel level, const string & module, const string & message);

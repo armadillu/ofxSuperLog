@@ -102,16 +102,16 @@ void ofxSuperLogDisplay::setEnabled(bool enabled) {
 	ofLogNotice("ofxSuperLogDisplay")	<< "enable log display: " << enabled;
 	this->enabled = enabled;
 	if(enabled) {
-		ofAddListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed);
-		ofAddListener(ofEvents().mouseDragged, this, &ofxSuperLogDisplay::mouseDragged);
-		ofAddListener(ofEvents().mouseReleased, this, &ofxSuperLogDisplay::mouseReleased);
+		ofAddListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed, OF_EVENT_ORDER_BEFORE_APP);
+		ofAddListener(ofEvents().mouseDragged, this, &ofxSuperLogDisplay::mouseDragged, OF_EVENT_ORDER_BEFORE_APP);
+		ofAddListener(ofEvents().mouseReleased, this, &ofxSuperLogDisplay::mouseReleased, OF_EVENT_ORDER_BEFORE_APP);
 		if(autoDraw){
 			ofAddListener(ofEvents().draw, this, &ofxSuperLogDisplay::draw, OF_EVENT_ORDER_AFTER_APP + 10);
 		}
 	} else {
-		ofRemoveListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed);
-		ofRemoveListener(ofEvents().mouseDragged, this, &ofxSuperLogDisplay::mouseDragged);
-		ofRemoveListener(ofEvents().mouseReleased, this, &ofxSuperLogDisplay::mouseReleased);
+		ofRemoveListener(ofEvents().mousePressed, this, &ofxSuperLogDisplay::mousePressed, OF_EVENT_ORDER_BEFORE_APP);
+		ofRemoveListener(ofEvents().mouseDragged, this, &ofxSuperLogDisplay::mouseDragged, OF_EVENT_ORDER_BEFORE_APP);
+		ofRemoveListener(ofEvents().mouseReleased, this, &ofxSuperLogDisplay::mouseReleased, OF_EVENT_ORDER_BEFORE_APP);
 		if(autoDraw){
 			ofRemoveListener(ofEvents().draw, this, &ofxSuperLogDisplay::draw, OF_EVENT_ORDER_AFTER_APP + 10);
 		}
@@ -342,27 +342,33 @@ const ofColor& ofxSuperLogDisplay::getColorForModule(const string & modName){
 }
 
 
-void ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
+bool ofxSuperLogDisplay::mousePressed(ofMouseEventArgs &e) {
+	bool doingStuff = false;
 	if(!minimized && ABS(e.x - (lastW * (1.0f - widthPct)))<20) {
 		draggingWidth = true;
 		mouseDragged(e);
+		doingStuff = true;
 	}
 	if(!minimized && (e.x > (lastW * (1.0f - widthPct)))) {
 		scrolling = true;
 		prevY = e.y;
 		inertia = 0;
 		dragSpeed = 0;
+		doingStuff = true;
 	}
+	return doingStuff;
 }
 
 
-void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
+bool ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
 	int width;
+	bool doingStuff = false;
 	if(draggingWidth) {
 		width = 10 + lastW - e.x;
 		width = MAX(10, width);
 		width = MIN(ofGetWidth() - 10, width);
 		widthPct = width / lastW;
+		doingStuff = true;
 	}
 
 	if(scrolling && !draggingWidth){
@@ -370,27 +376,34 @@ void ofxSuperLogDisplay::mouseDragged(ofMouseEventArgs &e) {
 		inertia = -dragSpeed;
 		targetScrollY -= dragSpeed;
 		prevY = e.y;
+		doingStuff = true;
 	}
+	return doingStuff;
 }
 	   
 	   
-void ofxSuperLogDisplay::mouseReleased(ofMouseEventArgs &e) {
+bool ofxSuperLogDisplay::mouseReleased(ofMouseEventArgs &e) {
+	bool doingStuff = false;
 	if(minimized) {
 		if(minimizedRect.inside(e.x, e.y)) {
+			doingStuff = true;
 			minimized = false;
 		}
 	} else {
 		if(e.y > lastH - 20) {
 			if(ABS(e.x - (lastW * (1.0f - widthPct))) < 20) {
 				minimized = true;
+				doingStuff = true;
 			}
 		}
 		if(scrolling){
 			inertia = -dragSpeed;
+			doingStuff = true;
 		}
 	}
 	draggingWidth = false;
 	scrolling = false;
+	return doingStuff;
 }
 
 void ofxSuperLogDisplay::setMinimized(bool minimized) {
