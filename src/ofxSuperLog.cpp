@@ -149,7 +149,6 @@ string ofxSuperLog::filterModuleName(const string & module){
 
 void ofxSuperLog::log(ofLogLevel level, const string & module, const string & message) {
 
-	
 	string filteredModName = filterModuleName(module);
 	string timeOfLog;
 	if(fileLogShowsTimestamps){
@@ -183,6 +182,15 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 			consoleLogger.log(level, filteredModName, message);
 		}
 	}
+	/*
+	if(logToNotification){
+		if (level >= OF_LOG_ERROR){
+			string removeCrap  = message;
+			ofStringReplace(removeCrap, "\"", "'");
+			ofSystem("osascript -e 'display notification \"" + removeCrap + "\" with title \"" + module + "\"'");
+		}
+	}
+	*/
 	if(useMutex) syncLogMutex.unlock();
 }
 
