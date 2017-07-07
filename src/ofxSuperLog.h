@@ -103,8 +103,6 @@ public:
 
 	static std::string demangled_type_info_name(const std::type_info&ti){
 
-		char demangleBuffer[512];
-
 		#ifdef TARGET_WIN32
 		static std::vector<std::string> keywords = {"class ", "struct ", "enum ", "union ", "__cdecl"};
 		std::string r = ti.name();
@@ -121,6 +119,7 @@ public:
 		}
 		return r;
 		#else
+		char demangleBuffer[512];
 		int status = 0;
 		size_t len = 4096;
 		abi::__cxa_demangle(ti.name(),(char*)&demangleBuffer, &len, &status);

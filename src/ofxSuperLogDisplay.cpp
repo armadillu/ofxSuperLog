@@ -143,7 +143,7 @@ void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const stri
 		string emptyModName;
 		//emptyModName.append(maxModuleLen, ' ');
 
-		for(int i = 0; i < lines.size(); i++) {
+		for(size_t i = 0; i < lines.size(); i++) {
 			if(i==0) {
 				logLines.push_back(LogLine(module, lines[0], level));
 			} else {
@@ -331,7 +331,7 @@ const ofColor& ofxSuperLogDisplay::getColorForModule(const string & modName){
 	auto search = moduleColors.find(modName);
 	if(search == moduleColors.end()){
 		size_t sum = 0;
-		for(int i = 0; i < modName.size(); i++){
+		for(size_t i = 0; i < modName.size(); i++){
 			sum += modName[i];
 		}
 		ofColor c; c.setHsb((sum)%255, 255, 255);
