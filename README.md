@@ -1,8 +1,10 @@
 ofxSuperLog
 ===========
+[![Build Status](https://travis-ci.org/armadillu/ofxSuperLog.svg?branch=master)](https://travis-ci.org/armadillu/ofxSuperLog)
+
 This enhances the ofLog system to allow you to have one log call that simultaneously writes to a log file (with a timestamped name, per-launch) and to the screen.
 
-To use, in testApp::setup()
+To use, in ofApp::setup()
 
 Call
 	ofSetLoggerChannel(ofxSuperLog::getLogger(true, true, "logs"));

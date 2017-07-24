@@ -14,7 +14,7 @@
  *				 make your ofLog display on the screen and optionally to a file and the console.
  *
  *  Usage:
- *				To enable: in testApp::setup()
+ *				To enable: in ofApp::setup()
  *				Do this:
  *					ofSetLoggerChannel(ofxSuperLog::getLogger(true, true, "logs"));
  *
