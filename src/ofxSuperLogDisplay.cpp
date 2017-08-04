@@ -139,7 +139,7 @@ void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const stri
 	if(message.find('\n') == -1) {
 		logLines.push_back(LogLine(module, message, level));
 	} else {
-		vector<string> lines = ofSplitString(message,"\n");
+		vector<string> lines = ofSplitString(message, "\n");
 		string emptyModName;
 		//emptyModName.append(maxModuleLen, ' ');
 
@@ -147,7 +147,7 @@ void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const stri
 			if(i==0) {
 				logLines.push_back(LogLine(module, lines[0], level));
 			} else {
-				logLines.push_back(LogLine(emptyModName, lines[i], level));
+				logLines.push_back(LogLine(module, lines[i], level));
 			}
 		}
 	}
