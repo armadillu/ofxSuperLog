@@ -26,7 +26,7 @@
 #endif
 
 #ifdef USE_OFX_FONTSTASH
-#include "ofxFontStash.h"
+	class ofxFontStash;
 #endif
 
 class ofxSuperLogDisplay: public ofBaseLoggerChannel {

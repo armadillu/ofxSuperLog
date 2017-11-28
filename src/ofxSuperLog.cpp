@@ -9,6 +9,10 @@
 #include <VersionHelpers.h>
 #endif
 
+#ifdef USE_OFX_FONTSTASH
+	#include "ofxFontStash.h"
+#endif
+
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
 
@@ -231,4 +235,35 @@ void ofxSuperLog::setScreenLoggingEnabled(bool enabled) {
 
 void ofxSuperLog::setMaximized(bool maximized){
 	displayLogger.setMinimized(!maximized);
+}
+
+
+
+std::string demangled_type_info_name(const std::type_info&ti) {
+
+#ifdef TARGET_WIN32
+	static std::vector<std::string> keywords = { "class ", "struct ", "enum ", "union ", "__cdecl", "__ptr64" };
+	std::string r = ti.name();
+	for (size_t i = 0; i < keywords.size(); i++) {
+		while (r.find(keywords[i]) != std::string::npos) r = r.replace(r.find(keywords[i]), keywords[i].size(), "");
+		while (r.find("*") != std::string::npos) r = r.replace(r.find("*"), 1, "");
+		while (r.find("&") != std::string::npos) r = r.replace(r.find("&"), 1, "");
+		while (r.find(" ") != std::string::npos) r = r.replace(r.find(" "), 1, "");
+	}
+	if (r.size() > 0) {
+		r = r.substr(0, r.size() - 1);
+	}
+	return r;
+#else
+	char demangleBuffer[512];
+	int status = 0;
+	size_t len = 4096;
+	abi::__cxa_demangle(ti.name(), (char*)&demangleBuffer, &len, &status);
+	//note theres no need to free the returned char* as we are providing our own buffer
+	string finalS = string(demangleBuffer);
+	if (finalS.size() > 0) {
+		finalS = finalS.substr(0, finalS.size() - 1);
+	}
+	return finalS;
+#endif
 }

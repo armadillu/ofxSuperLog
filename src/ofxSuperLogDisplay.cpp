@@ -5,6 +5,9 @@
  */
 
 #include "ofxSuperLogDisplay.h"
+#ifdef USE_OFX_FONTSTASH
+	#include "ofxFontStash.h"
+#endif
 
 ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	enabled = false;
