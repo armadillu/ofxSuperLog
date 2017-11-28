@@ -250,9 +250,6 @@ std::string demangled_type_info_name(const std::type_info&ti) {
 		while (r.find("&") != std::string::npos) r = r.replace(r.find("&"), 1, "");
 		while (r.find(" ") != std::string::npos) r = r.replace(r.find(" "), 1, "");
 	}
-	if (r.size() > 0) {
-		r = r.substr(0, r.size() - 1);
-	}
 	return r;
 #else
 	char demangleBuffer[512];
