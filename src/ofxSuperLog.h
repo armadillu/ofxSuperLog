@@ -103,6 +103,7 @@ public:
 	
 	string getCurrentLogFile(){return currentLogFile;}
 
+	void setConsoleShouldShowTimestamps(bool c){consoleShowTimestamps = c;}
 private:
 
 	static ofPtr<ofxSuperLog> logger;
@@ -119,6 +120,7 @@ private:
 	ofxSuperLogDisplay displayLogger;
 
 	bool fileLogShowsTimestamps = true;
+	bool consoleShowTimestamps = false;
 	
 	string currentLogFile;
 	

@@ -155,7 +155,7 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 
 	string filteredModName = filterModuleName(module);
 	string timeOfLog;
-	if(fileLogShowsTimestamps){
+	if(fileLogShowsTimestamps || consoleShowTimestamps){
 		timeOfLog = ofGetTimestampString("%Y/%m/%d %H:%M:%S");
 	}
 
@@ -180,10 +180,18 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 				case OF_LOG_FATAL_ERROR: colorMsg = "\033[30;45m"; break; //purple
 				default : break;
 			}
-			colorMsg += message + "\033[0;0m";
+			if(consoleShowTimestamps){
+				colorMsg += timeOfLog + " - " + message + "\033[0;0m";
+			}else{
+				colorMsg += message + "\033[0;0m";
+			}
 			consoleLogger.log(level, filteredModName, colorMsg);
 		}else{
-			consoleLogger.log(level, filteredModName, message);
+			if(consoleShowTimestamps){
+				consoleLogger.log(level, filteredModName, timeOfLog + " - " + message);
+			}else{
+				consoleLogger.log(level, filteredModName, message);
+			}
 		}
 	}
 	/*
