@@ -103,6 +103,15 @@ ofxSuperLog::~ofxSuperLog() {
 }
 
 
+string ofxSuperLog::getEmojiForLogLevel(ofLogLevel level){
+	switch (level) {
+		case OF_LOG_WARNING: return "⚠️";
+		case OF_LOG_ERROR: return "‼️";
+		case OF_LOG_FATAL_ERROR: return "💣";
+  		default: return "";
+	}
+}
+
 void ofxSuperLog::clearOldLogs(string path, int numDays){
 
 	string ppath = ofFilePath::getPathForDirectory(path);
@@ -170,6 +179,11 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 	}
 	if(loggingToScreen) displayLogger.log(level, filteredModName, message);
 	if(loggingToConsole){
+		string emojiIcon = "";
+		#if defined(TARGET_OSX) //sadly Xcode doesn't allow for colored console, but its really helpful to get warnings and errs to stand out
+								//so we use emoji for that (which work on OSX but not so much on win)
+		emojiIcon = getEmojiForLogLevel(level) + " ";
+		#endif
 		if(colorTerm){ //colorize term output
 			string colorMsg;
 			switch (level) {
@@ -181,16 +195,16 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 				default : break;
 			}
 			if(consoleShowTimestamps){
-				colorMsg += timeOfLog + " - " + message + "\033[0;0m";
+				consoleLogger.log(level, filteredModName, emojiIcon + colorMsg + timeOfLog + " - " + message + "\033[0;0m");
 			}else{
-				colorMsg += message + "\033[0;0m";
+				consoleLogger.log(level, filteredModName, emojiIcon + colorMsg + message + "\033[0;0m");
 			}
-			consoleLogger.log(level, filteredModName, colorMsg);
+
 		}else{
 			if(consoleShowTimestamps){
-				consoleLogger.log(level, filteredModName, timeOfLog + " - " + message);
+				consoleLogger.log(level, filteredModName, emojiIcon + timeOfLog + " - " + message);
 			}else{
-				consoleLogger.log(level, filteredModName, message);
+				consoleLogger.log(level, filteredModName, emojiIcon + message);
 			}
 		}
 	}

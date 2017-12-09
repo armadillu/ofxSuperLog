@@ -130,6 +130,8 @@ private:
 	
 	bool useMutex = false;
 	ofMutex syncLogMutex;
+
+	string getEmojiForLogLevel(ofLogLevel level);
 };
 
 std::string demangled_type_info_name(const std::type_info&ti);
