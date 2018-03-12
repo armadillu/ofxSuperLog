@@ -71,6 +71,7 @@ public:
 	void log(ofLogLevel logLevel, const string & module, const char* format, ...);
 	void log(ofLogLevel logLevel, const string & module, const char* format, va_list args);
 
+	void setScrollPosition(float pct);
 	
 protected:
 

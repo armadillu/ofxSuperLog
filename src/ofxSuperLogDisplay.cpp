@@ -76,6 +76,10 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 	}
 }
 
+void ofxSuperLogDisplay::setScrollPosition(float pct){
+
+	targetScrollY = ofMap(pct, 0, 1, -maxScrollY, 0, true);
+}
 
 #ifdef USE_OFX_FONTSTASH
 void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
