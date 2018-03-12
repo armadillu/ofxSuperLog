@@ -40,6 +40,7 @@ public:
 	bool getEnabled(){return enabled;}
 	void setAutoDraw(bool d){ autoDraw = d;}
 	bool isEnabled();
+	void setBgColor(ofColor bgColor);
 	
 	void setMinimized(bool minimized);
 	bool isMinimized();
@@ -73,6 +74,7 @@ public:
 	
 protected:
 
+	ofColor bgColor = ofColor(0, 240);
 	void onKeyPressed(ofKeyEventArgs &);
 	
 	void draw(ofEventArgs &e);

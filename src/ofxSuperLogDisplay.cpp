@@ -36,7 +36,7 @@ ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	#ifdef USE_OFX_FONTSTASH
 	font = NULL;
 	#endif
-	logLines.push_back(LogLine("", "################## ofxSuperLog Start ##################", OF_LOG_WARNING));
+	logLines.push_back(LogLine("", "", OF_LOG_WARNING));
 	
 	ofAddListener(ofEvents().keyPressed, this, &ofxSuperLogDisplay::onKeyPressed);
 }
@@ -129,7 +129,7 @@ bool ofxSuperLogDisplay::isEnabled() {
 void ofxSuperLogDisplay::clearLog(){
 	mutex.lock();
 	logLines.clear();
-	logLines.push_back(LogLine("", "################## ofxSuperLog Cleaned ##################", OF_LOG_WARNING));
+	logLines.push_back(LogLine("", "", OF_LOG_WARNING));
 	mutex.unlock();
 }
 
@@ -177,6 +177,10 @@ void ofxSuperLogDisplay::draw(ofEventArgs &e) {
 	draw(ofGetWidth(), ofGetHeight());
 }
 
+void ofxSuperLogDisplay::setBgColor(ofColor bgColor){
+	this->bgColor = bgColor;
+}
+
 void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 	lastW = screenW;
@@ -192,7 +196,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 	ofPushStyle();
 	ofEnableAlphaBlending();
-	ofSetColor(0, 240);
+	ofSetColor(bgColor);
 
 	if(minimized) {
 		minimizedRect.set(screenW - 150, screenH - 20, 150, 20);
