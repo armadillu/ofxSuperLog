@@ -120,27 +120,26 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 		return;
 	}
 
+	if(!ofDirectory::doesDirectoryExist(ppath)){
+		ofDirectory::createDirectory(ppath);
+	}
+
 	ofDirectory dir;
 	dir.listDir(ppath);
+	std::time_t now = std::time( nullptr ) ;
 
-	if(!dir.exists()){
-		dir.create();
-	}else{
-		std::time_t now = std::time( nullptr ) ;
+	for(int i = 0; i < dir.size() ; i++){
+		string logFilePath = dir.getPath(i);
+		string logFileAbsolutePath = ofToDataPath(logFilePath, true);
+		std::time_t lastMod = std::filesystem::last_write_time(logFileAbsolutePath);
 
-		for(int i = 0; i < dir.size() ; i++){
-			string logFilePath = dir.getPath(i);
-			string logFileAbsolutePath = ofToDataPath(logFilePath, true);
-			std::time_t lastMod = std::filesystem::last_write_time(logFileAbsolutePath);
-
-			int secondsOld = std::difftime(now, lastMod);
-			int daysOld = secondsOld / (60 * 60 * 24);
-			if(daysOld > numDays){
-				ofLogNotice("ofxSuperLog") << "removing old log at \"" << logFilePath << "\" bc it's more than " << numDays << " days old.";
-				bool didRemove = ofFile::removeFile(logFileAbsolutePath, false);
-				if(!didRemove){
-					ofLogError("ofxSuperLog") << "couldn't delete log at " << logFileAbsolutePath;
-				}
+		int secondsOld = std::difftime(now, lastMod);
+		int daysOld = secondsOld / (60 * 60 * 24);
+		if(daysOld > numDays){
+			ofLogNotice("ofxSuperLog") << "removing old log at \"" << logFilePath << "\" bc it's more than " << numDays << " days old.";
+			bool didRemove = ofFile::removeFile(logFileAbsolutePath, false);
+			if(!didRemove){
+				ofLogError("ofxSuperLog") << "couldn't delete log at " << logFileAbsolutePath;
 			}
 		}
 	}
