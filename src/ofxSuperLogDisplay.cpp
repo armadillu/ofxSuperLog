@@ -83,7 +83,7 @@ void ofxSuperLogDisplay::setScrollPosition(float pct){
 
 #ifdef USE_OFX_FONTSTASH
 void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
-	if(!ofIsGLProgrammableRenderer()){
+	if(!ofIsGLProgrammableRenderer() && ( fontSize != fontSize_ || font == nullptr )){
 		font = f;
 		fontSize = fontSize_;
 		ofRectangle r = font->getBBox("MMMMMMMMMM", fontSize, 0, 0);
