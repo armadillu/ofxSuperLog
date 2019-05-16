@@ -216,6 +216,80 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 		}
 	}
 	*/
+#if defined(_WIN32) || defined(_WIN64)
+	if (bWindowsEventLoggingEnabled) {
+
+		// Tutorial:
+		// https://stackoverflow.com/questions/37035958/log-to-event-viewer-on-windows-with-c
+		// Reference:
+		// https://docs.microsoft.com/en-us/windows/desktop/api/Winbase/nf-winbase-reporteventa
+		// https://docs.microsoft.com/en-us/windows/desktop/EventLog/reporting-an-event
+
+		// Register the source of these logs.
+		// The source should be this application
+		HANDLE windows_event_log;
+		windows_event_log = RegisterEventSource(NULL, windowsEventLoggingName.c_str());
+
+
+		// Parameters of the event (* = relevant)
+		WORD wType = EVENTLOG_SUCCESS;		// * Success, Error, Information, Warning
+		switch (level) {
+		case OF_LOG_VERBOSE: wType = EVENTLOG_SUCCESS; break;
+		case OF_LOG_NOTICE: wType = EVENTLOG_INFORMATION_TYPE; break;
+		case OF_LOG_WARNING: wType = EVENTLOG_WARNING_TYPE; break;
+		case OF_LOG_ERROR: wType = EVENTLOG_ERROR_TYPE; break;
+		case OF_LOG_FATAL_ERROR: wType = EVENTLOG_ERROR_TYPE; break; // any other differentiation?
+		default: break;
+		}
+		WORD wCategory = 0;					// * Can have any value
+		switch (level) {
+		case OF_LOG_VERBOSE: wCategory = 4; break;
+		case OF_LOG_NOTICE: wCategory = 3; break;
+		case OF_LOG_WARNING: wCategory = 2; break;
+		case OF_LOG_ERROR: wCategory = 1; break;
+		case OF_LOG_FATAL_ERROR: wCategory = 0; break; // any other differentiation?
+		default: break;
+		}
+
+		DWORD dwEventID = 0;				// Specifies entry in message file
+		PSID lpUserSid = NULL;				// Security Identifier
+		WORD wNumStrings = 1;				// Number of strings in message array
+		DWORD dwDataSize = 0;				// # bytes of event-specific binary data to write to log
+
+		//string message;					// * Message
+		string thisMsg = "";
+		thisMsg += "App:\t" + windowsEventLoggingName + "\n";
+		thisMsg += "Module:\t" + module + "\n";
+		thisMsg += "Level:\t";
+		switch (level) {
+		case OF_LOG_VERBOSE: thisMsg += "Verbose"; break;
+		case OF_LOG_NOTICE: thisMsg += "Notice"; break;
+		case OF_LOG_WARNING: thisMsg += "Warning"; break;
+		case OF_LOG_ERROR: thisMsg += "Error"; break;
+		case OF_LOG_FATAL_ERROR: thisMsg += "Fatal Error"; break; // any other differentiation?
+		default: thisMsg += "Unknown";  break;
+		}
+		thisMsg += "\n";
+		thisMsg += "\n";
+		thisMsg += "Message:\n" + message;
+
+		LPVOID lpRawData = NULL;			// Binary data to write
+		const char* charMsg = thisMsg.c_str();
+
+
+		// TODO: Should each module have its own event log source?
+
+
+		// Alt: if binary data is to be sent
+		//CONST LPWSTR lpRawData = L"The command that was not valid";
+		//DWORD dwDataSize = ((DWORD)wcslen(lpRawData) + 1) * sizeof(WCHAR);
+
+		// Report the event
+		bool bSuccess = ReportEvent(windows_event_log, wType, wCategory, dwEventID, lpUserSid, wNumStrings, dwDataSize, &charMsg, lpRawData);
+
+	}
+#endif
+
 	if(useMutex) syncLogMutex.unlock();
 }
 
@@ -258,6 +332,17 @@ void ofxSuperLog::setMaximized(bool maximized){
 	displayLogger.setMinimized(!maximized);
 }
 
+void ofxSuperLog::setWindowsEventLogging(bool _bEnabled, string _logName) {
+	
+#if defined(_WIN32) || defined(_WIN64)
+
+	bWindowsEventLoggingEnabled = _bEnabled;
+	if (!_logName.empty()) windowsEventLoggingName = _logName;
+
+#else
+	ofLogNotice("ofxSuperLog") << "Windows Event Logging is not enabled for Mac, Linux, etc.";
+#endif
+}
 
 
 std::string demangled_type_info_name(const std::type_info&ti) {
@@ -285,3 +370,5 @@ std::string demangled_type_info_name(const std::type_info&ti) {
 	return finalS;
 #endif
 }
+
+

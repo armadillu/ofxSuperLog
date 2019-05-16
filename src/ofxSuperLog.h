@@ -106,6 +106,10 @@ public:
 	string getCurrentLogFile(){return currentLogFile;}
 
 	void setConsoleShouldShowTimestamps(bool c){consoleShowTimestamps = c;}
+
+	// Call at setup
+	void setWindowsEventLogging(bool _bEnabled, string _logName = "ofApp");
+
 private:
 
 	static ofPtr<ofxSuperLog> logger;
@@ -134,6 +138,9 @@ private:
 	ofMutex syncLogMutex;
 
 	string getEmojiForLogLevel(ofLogLevel level);
+
+	bool bWindowsEventLoggingEnabled = false;
+	string windowsEventLoggingName = "ofApp"; // Should be the name of this app
 };
 
 std::string demangled_type_info_name(const std::type_info&ti);
