@@ -228,8 +228,7 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 		// Register the source of these logs.
 		// The source should be this application
 		HANDLE windows_event_log;
-		windows_event_log = RegisterEventSource(NULL, windowsEventLoggingName.c_str());
-
+		windows_event_log = RegisterEventSourceA(NULL, windowsEventLoggingName.c_str());
 
 		// Parameters of the event (* = relevant)
 		WORD wType = EVENTLOG_SUCCESS;		// * Success, Error, Information, Warning
@@ -285,7 +284,7 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 		//DWORD dwDataSize = ((DWORD)wcslen(lpRawData) + 1) * sizeof(WCHAR);
 
 		// Report the event
-		bool bSuccess = ReportEvent(windows_event_log, wType, wCategory, dwEventID, lpUserSid, wNumStrings, dwDataSize, &charMsg, lpRawData);
+		bool bSuccess = ReportEventA(windows_event_log, wType, wCategory, dwEventID, lpUserSid, wNumStrings, dwDataSize, &charMsg, lpRawData);
 
 	}
 #endif
