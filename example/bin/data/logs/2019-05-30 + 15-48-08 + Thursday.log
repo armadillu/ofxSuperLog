@@ -1,0 +1,15 @@
+
+
+--------------------------------------- 2019-05-30-15-48-08-480
+[notice ]         : 2019/05/30 15:48:08 - This is logging to your screen and 
+[notice ]         : 2019/05/30 15:48:08 - to a file with a timestamped file 
+[notice ]         : 2019/05/30 15:48:08 - in data/logs, and to your console.
+[notice ]         : 2019/05/30 15:48:08 - 
+[notice ]         : 2019/05/30 15:48:08 - you can choose where to log to when
+[notice ]         : 2019/05/30 15:48:08 - you set the logger channel.
+[notice ]         : 2019/05/30 15:48:08 - 
+[notice ]         : 2019/05/30 15:48:08 - You can also minimize the log window 
+[notice ]         : 2019/05/30 15:48:08 - by pressing the little x, or make it
+[notice ]         : 2019/05/30 15:48:08 - wider by dragging the left bar
+[notice ] ofxSuperLogDisplay: 2019/05/30 15:48:08 - enable log display: 0
+[warning]        ofxSuperLog: 2019/05/30 15:48:10 - ~ofxSuperLog()

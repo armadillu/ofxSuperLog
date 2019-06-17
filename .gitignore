@@ -3,3 +3,7 @@
 */obj
 */bin/example*
 */bin/libs
+.vs
+/.vs
+/.vs/*
+.vs/*

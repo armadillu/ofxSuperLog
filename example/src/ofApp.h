@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxSuperLog.h"
 
 class ofApp : public ofBaseApp{
 

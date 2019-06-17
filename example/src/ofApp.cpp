@@ -1,5 +1,5 @@
 #include "ofApp.h"
-#include "ofxSuperLog.h"
+
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -20,8 +20,9 @@ void ofApp::setup(){
 	ofLogNotice() << "You can also minimize the log window ";
 	ofLogNotice() << "by pressing the little x, or make it";
 	ofLogNotice() << "wider by dragging the left bar";
-	ofxSuperLog::getLogger()->setMaximized(true);
-	
+	//ofxSuperLog::getLogger()->setMaximized(true);
+	//ofxSuperLog::getLogger()->setScreenLoggingEnabled(false);
+
 	ofBackground(20, 20, 20);
 	ofSetFrameRate(60);
 }

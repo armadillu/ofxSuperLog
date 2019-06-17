@@ -1,0 +1,15 @@
+
+
+--------------------------------------- 2019-05-30-15-43-31-164
+[notice ]         : 2019/05/30 15:43:31 - This is logging to your screen and 
+[notice ]         : 2019/05/30 15:43:31 - to a file with a timestamped file 
+[notice ]         : 2019/05/30 15:43:31 - in data/logs, and to your console.
+[notice ]         : 2019/05/30 15:43:31 - 
+[notice ]         : 2019/05/30 15:43:31 - you can choose where to log to when
+[notice ]         : 2019/05/30 15:43:31 - you set the logger channel.
+[notice ]         : 2019/05/30 15:43:31 - 
+[notice ]         : 2019/05/30 15:43:31 - You can also minimize the log window 
+[notice ]         : 2019/05/30 15:43:31 - by pressing the little x, or make it
+[notice ]         : 2019/05/30 15:43:31 - wider by dragging the left bar
+[notice ] ofxSuperLogDisplay: 2019/05/30 15:43:31 - enable log display: 0
+[notice ]        ofxSuperLog: 2019/05/30 15:43:31 - removing old log at "logs\pkg_ubuntu10.04.txt" bc it's more than 0 days old.
