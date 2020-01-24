@@ -94,7 +94,9 @@ void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
 		}
 		charW = r.width / 10.0;
 	}else{
-		ofLogError("ofxSuperLogDisplay") << "Can't use ofxFontStash with the Programmable Renderer!";
+		if(ofIsGLProgrammableRenderer()){
+			ofLogError("ofxSuperLogDisplay") << "Can't use ofxFontStash with the Programmable Renderer!";
+		}
 	}
 }
 #endif
