@@ -53,8 +53,9 @@ void ofxSuperLogDisplay::onKeyPressed(ofKeyEventArgs & k){
 	}
 	#endif
 	if (k.key == OF_KEY_DOWN || k.key == OF_KEY_UP) {
-		float speedUp = ofGetKeyPressed(OF_KEY_SHIFT) ? 5.0 : 1.0;
-		targetScrollY += speedUp * (k.key == OF_KEY_DOWN) ? 2 * lineH : -2 * lineH;
+		float speedUp = ofGetKeyPressed(OF_KEY_SHIFT) ? 10.0 : 1.0;
+		float offset = speedUp * ((k.key == OF_KEY_DOWN) ? 2 * lineH : -2 * lineH);
+		targetScrollY += offset;
 		targetScrollY = ofClamp(targetScrollY, -maxScrollY, 0);
 	}
 	if (k.key == OF_KEY_END) {
