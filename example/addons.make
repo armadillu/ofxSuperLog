@@ -1,1 +1,1 @@
-../../../ExternalAddons/ofxSuperLog
+ofxSuperLog
