@@ -112,6 +112,14 @@ string ofxSuperLog::getEmojiForLogLevel(ofLogLevel level){
 	}
 }
 
+//from https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
+template <typename TP>
+std::time_t to_time_t(TP tp){
+	using namespace std::chrono;
+	auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now() + system_clock::now());
+	return system_clock::to_time_t(sctp);
+}
+
 void ofxSuperLog::clearOldLogs(string path, int numDays){
 
 	string ppath = ofFilePath::getPathForDirectory(path);
@@ -131,7 +139,7 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 	for(int i = 0; i < dir.size() ; i++){
 		string logFilePath = dir.getPath(i);
 		string logFileAbsolutePath = ofToDataPath(logFilePath, true);
-		std::time_t lastMod = std::filesystem::last_write_time(logFileAbsolutePath);
+		std::time_t lastMod = to_time_t(std::filesystem::last_write_time(logFileAbsolutePath));
 
 		int secondsOld = std::difftime(now, lastMod);
 		int daysOld = secondsOld / (60 * 60 * 24);
