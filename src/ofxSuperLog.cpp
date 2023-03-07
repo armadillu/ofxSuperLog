@@ -13,6 +13,10 @@
 	#include "ofxFontStash.h"
 #endif
 
+#include <time.h>
+#include <sys/stat.h>
+#include <stdio.h>
+
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
 
@@ -139,9 +143,12 @@ void ofxSuperLog::clearOldLogs(string path, int numDays){
 	for(int i = 0; i < dir.size() ; i++){
 		string logFilePath = dir.getPath(i);
 		string logFileAbsolutePath = ofToDataPath(logFilePath, true);
-		std::time_t lastMod = to_time_t(std::filesystem::last_write_time(logFileAbsolutePath));
 
-		int secondsOld = std::difftime(now, lastMod);
+		struct stat file_details;
+		stat(logFileAbsolutePath.c_str(), &file_details);
+		time_t modify_time = file_details.st_mtime;
+
+		int secondsOld = std::difftime(now, modify_time);
 		int daysOld = secondsOld / (60 * 60 * 24);
 		if(daysOld > numDays){
 			ofLogNotice("ofxSuperLog") << "removing old log at \"" << logFilePath << "\" bc it's more than " << numDays << " days old.";
