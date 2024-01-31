@@ -131,7 +131,7 @@ protected:
 
 	bool useColors;
 	ofColor logColors[6]; //6 being the # of ofLogLevels. This is not very future proof - TODO!
-	unordered_map<string, ofColor> moduleColors;
+	std::unordered_map<string, ofColor> moduleColors;
 
 	#ifdef USE_OFX_FONTSTASH
 	ofxFontStash * font;
