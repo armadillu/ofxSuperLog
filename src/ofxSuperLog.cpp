@@ -16,6 +16,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <cstdarg>
 
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;

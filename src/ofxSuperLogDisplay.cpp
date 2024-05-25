@@ -9,6 +9,8 @@
 	#include "ofxFontStash.h"
 #endif
 
+#include <cstdarg>
+
 ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	enabled = false;
 	minimized = true;
