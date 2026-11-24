@@ -16,3 +16,10 @@ If you specify a folder that doesn't exist it will create one for you.
 There is some basic interaction with the screen based logging so you can minimize it. If you want to hide it completely you'd call this:
 
 ofxSuperLog::getLogger()->setScreenLoggingEnabled(false);
+
+Logging is handed off to a background thread through a bounded 4096-message
+queue. Calls wait for space if the queue fills; accepted messages are drained
+when the logger is destroyed. File and console output are therefore asynchronous.
+The logger must remain alive until all logging threads have stopped. Output is
+always serialized, so `setSyncronizedLogging` is retained as a compatibility
+no-op. The screen history still uses a mutex to synchronize with drawing.

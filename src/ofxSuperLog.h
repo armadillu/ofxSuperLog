@@ -29,6 +29,10 @@
 
 
 #include "ofMain.h"
+#include <atomic>
+#include <ctime>
+#include <memory>
+#include <thread>
 
 #if defined(__has_include) /*llvm only - query about header files being available or not*/
 	#if __has_include("ofxFontStash.h") && !defined(DISABLE_AUTO_FIND_FONSTASH_HEADERS)
@@ -69,8 +73,7 @@ public:
 
 	void setMaximized(bool maximized);
 
-	//enabling this will lock/unlock a mutex for every ofLog() command to avoid mixed-up lines bc of de-synced logging
-	//probably big performance hit though!
+	// Retained for compatibility; output is always serialized by the consumer.
 	void setSyncronizedLogging(bool useMutex);
 
 	#ifdef USE_OFX_FONTSTASH
@@ -125,17 +128,39 @@ private:
 	ofFileLoggerChannel fileLogger;
 	ofxSuperLogDisplay displayLogger;
 
-	bool fileLogShowsTimestamps = true;
-	bool consoleShowTimestamps = false;
+	std::atomic<bool> fileLogShowsTimestamps{true};
+	std::atomic<bool> consoleShowTimestamps{false};
 	
 	string currentLogFile;
 	
 	string filterModuleName(const string &);
 	size_t maxModuleLen = 8; //len of the longest OF log module
-	bool colorTerm = false;
+	std::atomic<bool> colorTerm{false};
 	
-	bool useMutex = false;
-	ofMutex syncLogMutex;
+	struct LogEntry {
+		ofLogLevel level;
+		string module;
+		string message;
+		std::time_t timestamp = 0;
+		bool fileTimestamp = false;
+		bool consoleTimestamp = false;
+		bool color = false;
+	};
+	struct QueueSlot {
+		std::atomic<std::size_t> sequence;
+		LogEntry entry;
+	};
+	static const std::size_t queueCapacity = 4096;
+	std::unique_ptr<QueueSlot[]> queue;
+	std::atomic<std::size_t> enqueuePos{0};
+	std::atomic<std::size_t> dequeuePos{0};
+	std::atomic<bool> running{true};
+	std::thread worker;
+	bool tryEnqueue(LogEntry &entry);
+	bool tryDequeue(LogEntry &entry);
+	void enqueue(ofLogLevel level, string module, string message);
+	void consume();
+	void writeEntry(const LogEntry &entry);
 
 	string getEmojiForLogLevel(ofLogLevel level);
 

@@ -17,6 +17,9 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <cstdarg>
+#include <cstdint>
+#include <chrono>
+#include <utility>
 
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
@@ -53,7 +56,9 @@ RTL_OSVERSIONINFOW GetRealOSVersion() {
 }
 #endif
 
-ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory) {
+ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirectory)
+: queue(new QueueSlot[queueCapacity]) {
+	for (std::size_t i = 0; i < queueCapacity; ++i) queue[i].sequence.store(i, std::memory_order_relaxed);
 
 	#ifdef TARGET_WIN32
 	
@@ -101,10 +106,12 @@ ofxSuperLog::ofxSuperLog(bool writeToConsole, bool drawToScreen, string logDirec
 	if(drawToScreen) {
 		displayLogger.setEnabled(true);
 	}
+	worker = std::thread(&ofxSuperLog::consume, this);
 }
 
 ofxSuperLog::~ofxSuperLog() {
-	 ofLogWarning("ofxSuperLog") << "~ofxSuperLog()"; 
+	running.store(false, std::memory_order_release);
+	if (worker.joinable()) worker.join();
 }
 
 
@@ -175,18 +182,88 @@ string ofxSuperLog::filterModuleName(const string & module){
 	return pad + module;
 }
 
-void ofxSuperLog::log(ofLogLevel level, const string & module, const string & message) {
-
-	string filteredModName = filterModuleName(module);
-	string timeOfLog;
-	if(fileLogShowsTimestamps || consoleShowTimestamps){
-		timeOfLog = ofGetTimestampString("%Y/%m/%d %H:%M:%S");
+// Per-slot sequence MPMC ring based on Dmitry Vyukov's bounded queue:
+// https://www.1024cores.net/home/lock-free-algorithms/queues/bounded-mpmc-queue
+bool ofxSuperLog::tryEnqueue(LogEntry &entry) {
+	std::size_t pos = enqueuePos.load(std::memory_order_relaxed);
+	for (;;) {
+		QueueSlot &slot = queue[pos % queueCapacity];
+		const std::size_t seq = slot.sequence.load(std::memory_order_acquire);
+		const std::intptr_t diff = static_cast<std::intptr_t>(seq - pos);
+		if (diff == 0) {
+			if (enqueuePos.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
+				slot.entry = std::move(entry);
+				slot.sequence.store(pos + 1, std::memory_order_release);
+				return true;
+			}
+		} else if (diff < 0) return false;
+		else pos = enqueuePos.load(std::memory_order_relaxed);
 	}
+}
 
-	if(useMutex) syncLogMutex.lock();
-	
+bool ofxSuperLog::tryDequeue(LogEntry &entry) {
+	std::size_t pos = dequeuePos.load(std::memory_order_relaxed);
+	for (;;) {
+		QueueSlot &slot = queue[pos % queueCapacity];
+		const std::size_t seq = slot.sequence.load(std::memory_order_acquire);
+		const std::intptr_t diff = static_cast<std::intptr_t>(seq - (pos + 1));
+		if (diff == 0) {
+			if (dequeuePos.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
+				entry = std::move(slot.entry);
+				slot.sequence.store(pos + queueCapacity, std::memory_order_release);
+				return true;
+			}
+		} else if (diff < 0) return false;
+		else pos = dequeuePos.load(std::memory_order_relaxed);
+	}
+}
+
+void ofxSuperLog::enqueue(ofLogLevel level, string module, string message) {
+	LogEntry entry;
+	entry.level = level;
+	entry.module = std::move(module);
+	entry.message = std::move(message);
+	entry.fileTimestamp = fileLogShowsTimestamps.load(std::memory_order_relaxed);
+	entry.consoleTimestamp = consoleShowTimestamps.load(std::memory_order_relaxed);
+	entry.color = colorTerm.load(std::memory_order_relaxed);
+	if (entry.fileTimestamp || entry.consoleTimestamp)
+		entry.timestamp = std::time(nullptr);
+	// Preserve messages under load; the consumer must remain alive while producers run.
+	while (!tryEnqueue(entry)) std::this_thread::yield();
+}
+
+void ofxSuperLog::log(ofLogLevel level, const string &module, const string &message) {
+	enqueue(level, module, message);
+}
+
+void ofxSuperLog::consume() {
+	LogEntry entry;
+	while (running.load(std::memory_order_acquire)) {
+		if (tryDequeue(entry)) writeEntry(entry);
+		else std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+	while (tryDequeue(entry)) writeEntry(entry);
+}
+
+void ofxSuperLog::writeEntry(const LogEntry &entry) {
+	const ofLogLevel level = entry.level;
+	const string &module = entry.module;
+	const string &message = entry.message;
+	string timeOfLog;
+	if (entry.fileTimestamp || entry.consoleTimestamp) {
+		std::tm localTime;
+#ifdef TARGET_WIN32
+		localtime_s(&localTime, &entry.timestamp);
+#else
+		localtime_r(&entry.timestamp, &localTime);
+#endif
+		char buffer[32];
+		if (std::strftime(buffer, sizeof(buffer), "%Y/%m/%d %H:%M:%S", &localTime)) timeOfLog = buffer;
+	}
+	string filteredModName = filterModuleName(module);
+
 	if(loggingToFile){
-		if(fileLogShowsTimestamps){
+		if(entry.fileTimestamp){
 			fileLogger.log(level, filteredModName, timeOfLog + " - " + message);
 		}else{
 			fileLogger.log(level, filteredModName, message);
@@ -199,7 +276,7 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 								//so we use emoji for that (which work on OSX but not so much on win)
 		emojiIcon = getEmojiForLogLevel(level) + " ";
 		#endif
-		if(colorTerm){ //colorize term output
+		if(entry.color){ //colorize term output
 			string colorMsg;
 			switch (level) {
 				case OF_LOG_VERBOSE: colorMsg = "\033[0;37m"; break; //gray
@@ -209,14 +286,14 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 				case OF_LOG_FATAL_ERROR: colorMsg = "\033[30;45m"; break; //purple
 				default : break;
 			}
-			if(consoleShowTimestamps){
+			if(entry.consoleTimestamp){
 				consoleLogger.log(level, filteredModName, emojiIcon + colorMsg + timeOfLog + " - " + message + "\033[0;0m");
 			}else{
 				consoleLogger.log(level, filteredModName, emojiIcon + colorMsg + message + "\033[0;0m");
 			}
 
 		}else{
-			if(consoleShowTimestamps){
+			if(entry.consoleTimestamp){
 				consoleLogger.log(level, filteredModName, emojiIcon + timeOfLog + " - " + message);
 			}else{
 				consoleLogger.log(level, filteredModName, emojiIcon + message);
@@ -305,26 +382,23 @@ void ofxSuperLog::log(ofLogLevel level, const string & module, const string & me
 	}
 #endif
 
-	if(useMutex) syncLogMutex.unlock();
 }
 
 void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, ...) {
 	va_list args;
 	va_start(args, format);
-	log(logLevel, filterModuleName(module), format, args);
+	log(logLevel, module, format, args);
 	va_end(args);
 }
 
-void ofxSuperLog::setSyncronizedLogging(bool useMutex){
-	this->useMutex = useMutex;
+void ofxSuperLog::setSyncronizedLogging(bool){
+	// All output is serialized by the queue consumer.
 }
 
 
 void ofxSuperLog::log(ofLogLevel logLevel, const string & module, const char* format, va_list args) {
 
-	char aux64[8192];//hopefully that's enough!
-	vsprintf(aux64, format, args);
-	log(logLevel, module, string(aux64));
+	enqueue(logLevel, module, ofVAArgsToString(format, args));
 }
 
 void ofxSuperLog::draw(float w, float h){

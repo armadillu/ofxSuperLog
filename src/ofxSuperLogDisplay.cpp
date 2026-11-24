@@ -10,6 +10,8 @@
 #endif
 
 #include <cstdarg>
+#include <algorithm>
+#include <cmath>
 
 ofxSuperLogDisplay::ofxSuperLogDisplay() {
 	enabled = false;
@@ -106,7 +108,8 @@ void ofxSuperLogDisplay::setFont(ofxFontStash* f, float fontSize_){
 #endif
 
 void ofxSuperLogDisplay::setMaxNumLogLines(int maxNumLogLines) {
-	MAX_NUM_LOG_LINES = maxNumLogLines;
+	ofScopedLock lock(mutex);
+	MAX_NUM_LOG_LINES = maxNumLogLines > 0 ? maxNumLogLines : 0;
 }
 
 void ofxSuperLogDisplay::setEnabled(bool enabled) {
@@ -145,10 +148,10 @@ void ofxSuperLogDisplay::clearLog(){
 
 void ofxSuperLogDisplay::log(ofLogLevel level, const string & module, const string & message) {
 
+	mutex.lock();
 	if(module.size() > maxModuleLen){
 		maxModuleLen = module.size();
 	}
-	mutex.lock();
 	if(message.find('\n') == -1) {
 		logLines.push_back(LogLine(module, message, level));
 	} else {
@@ -197,12 +200,48 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 	lastH = screenH;
 
 	deque<LogLine> linesCopy;
+	size_t displayMaxModuleLen;
+	size_t historySize;
+	size_t firstCopiedIndex = 0;
 
 	mutex.lock();
-	linesCopy = logLines;
+	historySize = logLines.size();
+	displayMaxModuleLen = maxModuleLen;
+	if (!minimized && historySize && lineH > 0) {
+		// Calculate scrolling against the complete history, then copy only the
+		// viewport plus one boundary line used for the scrollbar.
+		maxScrollY = lineH * historySize - screenH;
+		if(!scrolling){
+			float filter = 0.85f;
+			if(targetScrollY < -maxScrollY){
+				targetScrollY = filter * targetScrollY + -maxScrollY * (1.0f - filter);
+				inertia *= 0.6;
+			}
+			if(targetScrollY > 0){
+				targetScrollY = targetScrollY * filter;
+				inertia *= 0.6;
+			}
+			targetScrollY += inertia;
+			inertia *= 0.97;
+		}
+		scrollY = ofLerp(scrollY, targetScrollY, 0.33);
+
+		// pos counts backward from the newest entry. The 25px margin covers
+		// both bitmap and FontStash baselines and the existing 20px overscan.
+		const double lastPos = static_cast<double>(historySize - 1);
+		const double firstPos = std::max(0.0, std::floor((-scrollY - 25.0) / lineH));
+		const double endPos = std::max(0.0, std::min(lastPos, std::ceil((static_cast<double>(screenH) - scrollY) / lineH)));
+		if (firstPos <= endPos && firstPos <= lastPos && endPos >= 0) {
+			const size_t newestPos = static_cast<size_t>(firstPos);
+			const size_t oldestPos = static_cast<size_t>(endPos);
+			firstCopiedIndex = historySize - 1 - oldestPos;
+			linesCopy.insert(linesCopy.end(), logLines.begin() + firstCopiedIndex,
+			                 logLines.begin() + (historySize - newestPos));
+		}
+	}
 	mutex.unlock();
 
-	if(linesCopy.size() == 0) return;
+	if(historySize == 0) return;
 
 	ofPushStyle();
 	ofEnableAlphaBlending();
@@ -217,31 +256,13 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 		dragSpeed *= 0.6;
 
-		//clamp scrolling to lines we own
-		maxScrollY = lineH * linesCopy.size() - screenH;
-		if(!scrolling){
-			float filter = 0.85f;
-			if(targetScrollY < -maxScrollY){
-				targetScrollY = filter * targetScrollY + -maxScrollY * (1.0f - filter);
-				inertia *= 0.6;
-			}
-			if(targetScrollY > 0){
-				targetScrollY = targetScrollY * filter;
-				inertia *= 0.6;
-			}
-
-			targetScrollY += inertia;
-			inertia *= 0.97;
-		}
-
-		scrollY = ofLerp(scrollY, targetScrollY, 0.33);
 
 		int x = screenW * (1. - widthPct);
 
 		ofDrawRectangle(x, 0, ceil(1 + screenW * widthPct), screenH);
 
 		if(!useColors) ofSetColor(200);
-		int pos = 0;
+		int pos = static_cast<int>(historySize - firstCopiedIndex - linesCopy.size());
 
 		#ifdef USE_OFX_FONTSTASH
 		if(font) font->beginBatch();
@@ -249,7 +270,7 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 
 		float yy;
 		bool drawn = false;
-		float postModuleX = int((maxModuleLen + 2.7) * charW); //
+		float postModuleX = int((displayMaxModuleLen + 2.7) * charW); //
 		const string separator = ":";
 
 		for(int i = linesCopy.size() - 1; i >= 0; i--) {
@@ -258,17 +279,17 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 			if(font){
 				yy = screenH - pos * lineH - scrollY;
 				if(yy < 0){
-					newestLineOnScreen = i;
+					newestLineOnScreen = static_cast<int>(firstCopiedIndex + i);
 					break;
 				}
 				if(yy < screenH + 20){
 					if(!drawn){
-						oldestLineOnScreen = i;
+						oldestLineOnScreen = static_cast<int>(firstCopiedIndex + i);
 						drawn = true;
 					}
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
-						int off = charW * (maxModuleLen - linesCopy[i].module.size());
+						int off = charW * (displayMaxModuleLen - linesCopy[i].module.size());
 						font->drawBatch(linesCopy[i].module + separator, fontSize, x + off + 22, yy - 5);
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
@@ -279,17 +300,17 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 			{
 				yy = screenH - pos * lineH - 5 - scrollY;
 				if(yy < 0){
-					newestLineOnScreen = i;
+					newestLineOnScreen = static_cast<int>(firstCopiedIndex + i);
 					break;
 				}
 				if(yy < screenH + 20 ){
 					if(!drawn){
-						oldestLineOnScreen = i;
+						oldestLineOnScreen = static_cast<int>(firstCopiedIndex + i);
 						drawn = true;
 					}
 					if(linesCopy[i].module.size()){
 						if(useColors) ofSetColor(getColorForModule(linesCopy[i].moduleClean));
-						int off = charW * (maxModuleLen - linesCopy[i].module.size());
+						int off = charW * (displayMaxModuleLen - linesCopy[i].module.size());
 						ofDrawBitmapString(linesCopy[i].module + separator, x + off + 20, yy );
 					}
 					if(useColors) ofSetColor(logColors[linesCopy[i].level]);
@@ -313,8 +334,8 @@ void ofxSuperLogDisplay::draw(float screenW, float screenH) {
 		ofDrawLine(x+12, yy - 10, x+12, yy+10);
 		ofDrawBitmapString("x", screenW - screenW * widthPct + 6, screenH - 5);
 		ofSetColor(0,0,0);
-		float y1 = ofMap(oldestLineOnScreen, 1, linesCopy.size(), pad, screenH, true);
-		float y2 = ofMap(newestLineOnScreen, 1, linesCopy.size(), pad, screenH, true);
+		float y1 = ofMap(oldestLineOnScreen, 1, historySize, pad, screenH, true);
+		float y2 = ofMap(newestLineOnScreen, 1, historySize, pad, screenH, true);
 		ofSetColor(255,64);
 		ofDrawRectangle(x + pad, y1, sepBarW - 2 * pad, y2 - y1);
 		ofPushMatrix();
