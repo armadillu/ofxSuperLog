@@ -16,10 +16,13 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <stdio.h>
+<<<<<<< Updated upstream
 #include <cstdarg>
 #include <cstdint>
 #include <chrono>
 #include <utility>
+=======
+>>>>>>> Stashed changes
 
 ofPtr<ofxSuperLog> ofxSuperLog::logger;
 ofxSuperLog *ofxSuperLog::logPtr = NULL;
